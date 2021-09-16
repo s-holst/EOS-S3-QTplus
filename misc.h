@@ -26,8 +26,8 @@ typedef struct
     volatile uint32_t A0_DBG_MON_SEL;     // 0x008
     volatile uint32_t A0_PMU_DBG_MON_SEL; // 0x00C
     volatile uint32_t reserved010[60];    // 0x010
-    volatile uint32_t IO_INPUT;           // 0x100
-    volatile uint32_t IO_OUTPUT;          // 0x104
+    volatile uint32_t IO_INPUT;           // 0x100 [7:0]R input of GPIO7..GPIO0
+    volatile uint32_t IO_OUTPUT;          // 0x104 [7:0]W output for GPIO7..GPIO0
     volatile uint32_t reserved108[2];     // 0x108
     volatile uint32_t SW_MB_1;            // 0x110
     volatile uint32_t SW_MB_2;            // 0x114

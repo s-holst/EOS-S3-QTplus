@@ -156,7 +156,6 @@ int i2c_read_regs(uint8_t ucDevAddr, uint8_t ucRegAddr, uint8_t *pucData, uint32
 
 int main(void)
 {
-
     // FFE power up for I2C
     PMU->FFE_FB_PF_SW_WU |= PMU_FFE_FB_PF_SW_WU_FFE_WU_Msk;
     while (!(PMU->FFE_STATUS & 1))
@@ -189,6 +188,11 @@ int main(void)
     IOMUX->SDA0_SEL = 1;
     IOMUX->SCL0_SEL = 1;
 
+    IOMUX->PAD_CTRL[6] = IOMUX_PAD_CTRL_6_FSEL_GPIO0 | IOMUX_PAD_CTRL_OEN_DISABLE | IOMUX_PAD_CTRL_REN_ENABLE;
+    IOMUX->PAD_CTRL[18] = IOMUX_PAD_CTRL_18_FSEL_GPIO4 | IOMUX_PAD_CTRL_E_4MA; // Route GPIO4 -> Blue LED on Pad 18
+    IOMUX->PAD_CTRL[21] = IOMUX_PAD_CTRL_21_FSEL_GPIO5 | IOMUX_PAD_CTRL_E_4MA; // Route GPIO5 -> Green LED on Pad 21
+    IOMUX->PAD_CTRL[22] = IOMUX_PAD_CTRL_22_FSEL_GPIO6 | IOMUX_PAD_CTRL_E_4MA; // Route GPIO6 -> Red LED on Pad 22
+
     // Configure PL011 UART
     UART->CR = 0; // first, disable UART
     UART->LCR_H = 0;
@@ -217,16 +221,28 @@ int main(void)
 
     uint32_t counter;
     uint8_t b[10];
+    uint8_t led_state, led_oldstate;
 
     while (1)
     {
-        if (!(counter++ & 0xfffff))
+        counter++;
+
+        // cycle through all combinations on GPIO4, GPIO5, GPIO6
+        led_state = ((counter >> 21) & 0x07) << 4;
+        if (led_state != led_oldstate)
+        {
+            MISC->IO_OUTPUT |= led_state;
+            MISC->IO_OUTPUT &= led_state | ~(0x07 << 4);
+            led_oldstate = led_state;
+        }
+
+        if (!(counter & 0x8ffff))
         {
             i2c_read_regs(0x18, 0x80 | 0x28, b, 6);
             int32_t x = ((b[0] >> 6) & 0x3) | ((int32_t)((int8_t)b[1])) << 2;
             int32_t y = ((b[2] >> 6) & 0x3) | ((int32_t)((int8_t)b[3])) << 2;
             int32_t z = ((b[4] >> 6) & 0x3) | ((int32_t)((int8_t)b[5])) << 2;
-            dbg_printf("%6d %6d %6d\n", x, y, z);
+            dbg_printf("X %6d Y %6d Z %6d USR %d\n", x, y, z, (~MISC->IO_INPUT) & 1);
         }
     }
 
