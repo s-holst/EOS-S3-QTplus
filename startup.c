@@ -46,22 +46,24 @@
 extern uint32_t __etext;
 extern uint32_t __data_start__;
 extern uint32_t __data_end__;
-extern void _start(void) __attribute__((noreturn));  /* C library entry point */
+extern void _start(void) __attribute__((noreturn)); // C library entry point
 
-void Reset_Handler(void) {
+void Reset_Handler(void)
+{
     uint32_t *pSrc, *pDest;
 
-    pSrc  = &__etext;
+    pSrc = &__etext;
     pDest = &__data_start__;
-    for ( ; pDest < &__data_end__ ; ) {
+    while (pDest < &__data_end__)
         *pDest++ = *pSrc++;
-    }
 
     _start();
 }
 
-void Default_Handler(void) {
-    while(1);
+void Default_Handler(void)
+{
+    while (1)
+        ;
 }
 
 __attribute__((weak, alias("Default_Handler"))) extern void NMI_Handler(void);
@@ -128,85 +130,88 @@ __attribute__((weak, alias("Default_Handler"))) extern void dmicVoiceOffHandler(
 /* Exception and Interrupt Vector Table */
 
 extern uint32_t __StackTop;
-typedef void(*intfunc)(void);
-typedef union {
+
+typedef void (*intfunc)(void);
+
+typedef union
+{
     void (*int_func)(void);
-    void * __ptr;
+    void *__ptr;
     int __val;
 } intvec_elem;
-const intvec_elem __Vectors[] __attribute__((section(".isr_vector"))) = {
-    (intfunc)&__StackTop,    /* 0x000 Main Stack Pointer */
-    Reset_Handler,           /* 0x004 Reset */
-    NMI_Handler,             /* 0x008 NMI */
-    HardFault_Handler,       /* 0x00C Hard Fault */
-    MemManage_Handler,       /* 0x010 Mem Manage Fault */
-    BusFault_Handler,        /* 0x014 Bus Fault */
-    UsageFault_Handler,      /* 0x018 Usage Fault */
-    0,                       /* 0x01C */
-    0,                       /* 0x020 */
-    0,                       /* 0x024 */
-    0,                       /* 0x028 */
-    SVC_Handler,             /* 0x02C SVC */
-    DebugMon_Handler,        /* 0x030 Debug Monitor */
-    0,                       /* 0x034 */
-    PendSV_Handler,          /* 0x038 Pend SV */
-    SysTick_Handler,         /* 0x03C SysTick */
-    SwInt2_Handler,          /* 0x040 Software Interrupt 2 */
-    SwInt1_Handler,          /* 0x044 Software Interrupt 1 */
-    0,                       /* 0x048 */
-    Ffe0Msg_Handler,         /* 0x04C FFE0 Message */
-    FbMsg_Handler,           /* 0x050 Fabric Message */
-    SensorGpio_Handler,      /* 0x054 Sensor/GPIO */
-    M4SramSleep_Handler,     /* 0x058 M4 SRAM Sleep */
-    Uart_Handler,            /* 0x05C UART */
-    Timer_Handler,           /* 0x060 TIMER */
-    CpuWdtInt_Handler,       /* 0x064 CPU WDOG_INTR */
-    CpuWdtRst_Handler,       /* 0x068 CPU WDOG_RST */
-    BusTimeout_Handler,      /* 0x06C Bus Timeout */
-    Fpu_Handler,             /* 0x070 FPU */
-    Pkfb_Handler,            /* 0x074 PKFB */
-    I2s_Handler,             /* 0x078 */
-    Audio_Handler,           /* 0x07C */
-    SpiMs_Handler,           /* 0x080 SPI_MS */
-    CfgDma_Handler,          /* 0x084 CFG_DMA */
-    PmuTimer_Handler,        /* 0x088 PMU Timer */
-    AdcDone_Handler,         /* 0x08C ADC Done */
-    RtcAlarm_Handler,        /* 0x090 RTC Alarm */
-    ResetInt_Handler,        /* 0x094 Reset Interrupt */
-    Ffe0_Handler,            /* 0x098 FFE0 Combined */
-    FfeWdt_Handler,          /* 0x09C */
-    ApBoot_Handler,          /* 0x0A0 AP Boot */
-    LDO30_PG_Handler,        /* 0x0A4 LDO30 PG INTR */
-    LDO50_PG_Handler,        /* 0x0A8 LDO50 PG INTR */
-    SRAM_128KB_Handler,      /* 0x0AC */
-    LPSD_Voice_Det_Handler,  /* 0x0B0 LPSD Voice Det */
-    DMIC_Voice_Det_Handler,  /* 0x0B4 DMIC Voice Det */
-    0,                       /* 0x0B8 */
-    Sdma1Done_Handler,       /* 0x0BC SDMA_DONE */
-    Sdma2Done_Handler,       /* 0x0C0 SDMA_DONE */
-    Sdma3Done_Handler,       /* 0x0C4 SDMA_DONE */
-    Sdma4Done_Handler,       /* 0x0C8 SDMA_DONE */
-    Sdma5Done_Handler,       /* 0x0CC SDMA_DONE */
-    Sdma6Done_Handler,       /* 0x0D0 SDMA_DONE */
-    Sdma7Done_Handler,       /* 0x0D4 SDMA_DONE */
-    Sdma8Done_Handler,       /* 0x0D8 SDMA_DONE */
-    Sdma9Done_Handler,       /* 0x0DC SDMA_DONE */
-    Sdma10Done_Handler,      /* 0x0E0 SDMA_DONE */
-    Sdma11Done_Handler,      /* 0x0E4 SDMA_DONE */
-    ApPDMClkOn_Handler,      /* 0x0E8 AP_PDM_CLK_ON */
-    ApPDMClkOff_Handler,     /* 0x0EC AP_PDM_CLK_OFF */
-    Dmac0BlkDone_Handler,    /* 0x0F0 DMAC0_BLK_DONE */
-    Dmac0BufDone_Handler,    /* 0x0F4 DMAC0_BUF_DONE */
-    Dmac1BlkDone_Handler,    /* 0x0F8 DMAC1_BLK_DONE */
-    Dmac1BufDone_Handler,    /* 0x0FC DMAC1_BUF_DONE */
-    Sdma0Done_Handler,       /* 0x100 SDMA_DONE[0] */
-    SdmaErr_Handler,         /* 0x104 SDMA_ERR */
-    I2S_SlvM4TxOr_Handler,   /* 0x108 I2SSLV_M4_tx_or_intr */
-    lpsdVoiceOffHandler,     /* 0x10C LPSD_VOICE_OFF */
-    dmicVoiceOffHandler,     /* 0x110 DMIC_VOICE_OFF */ 
-    0,                       /* 0x114 */
-    0,                       /* 0x118 */
-    0,                       /* 0x11C */
-    {.__val = (0x20021FFF)}  /* 0x120 Flash Boot header */
-};
 
+const intvec_elem __Vectors[] __attribute__((section(".isr_vector"))) = {
+    (intfunc)&__StackTop,   // 0x000 Main Stack Pointer
+    Reset_Handler,          // 0x004 Reset
+    NMI_Handler,            // 0x008 NMI
+    HardFault_Handler,      // 0x00C Hard Fault
+    MemManage_Handler,      // 0x010 Mem Manage Fault
+    BusFault_Handler,       // 0x014 Bus Fault
+    UsageFault_Handler,     // 0x018 Usage Fault
+    0,                      // 0x01C
+    0,                      // 0x020
+    0,                      // 0x024
+    0,                      // 0x028
+    SVC_Handler,            // 0x02C SVC
+    DebugMon_Handler,       // 0x030 Debug Monitor
+    0,                      // 0x034
+    PendSV_Handler,         // 0x038 Pend SV
+    SysTick_Handler,        // 0x03C SysTick
+    SwInt2_Handler,         // 0x040 Software Interrupt 2
+    SwInt1_Handler,         // 0x044 Software Interrupt 1
+    0,                      // 0x048
+    Ffe0Msg_Handler,        // 0x04C FFE0 Message
+    FbMsg_Handler,          // 0x050 Fabric Message
+    SensorGpio_Handler,     // 0x054 Sensor/GPIO
+    M4SramSleep_Handler,    // 0x058 M4 SRAM Sleep
+    Uart_Handler,           // 0x05C UART
+    Timer_Handler,          // 0x060 TIMER
+    CpuWdtInt_Handler,      // 0x064 CPU WDOG_INTR
+    CpuWdtRst_Handler,      // 0x068 CPU WDOG_RST
+    BusTimeout_Handler,     // 0x06C Bus Timeout
+    Fpu_Handler,            // 0x070 FPU
+    Pkfb_Handler,           // 0x074 PKFB
+    I2s_Handler,            // 0x078
+    Audio_Handler,          // 0x07C
+    SpiMs_Handler,          // 0x080 SPI_MS
+    CfgDma_Handler,         // 0x084 CFG_DMA
+    PmuTimer_Handler,       // 0x088 PMU Timer
+    AdcDone_Handler,        // 0x08C ADC Done
+    RtcAlarm_Handler,       // 0x090 RTC Alarm
+    ResetInt_Handler,       // 0x094 Reset Interrupt
+    Ffe0_Handler,           // 0x098 FFE0 Combined
+    FfeWdt_Handler,         // 0x09C
+    ApBoot_Handler,         // 0x0A0 AP Boot
+    LDO30_PG_Handler,       // 0x0A4 LDO30 PG INTR
+    LDO50_PG_Handler,       // 0x0A8 LDO50 PG INTR
+    SRAM_128KB_Handler,     // 0x0AC
+    LPSD_Voice_Det_Handler, // 0x0B0 LPSD Voice Det
+    DMIC_Voice_Det_Handler, // 0x0B4 DMIC Voice Det
+    0,                      // 0x0B8
+    Sdma1Done_Handler,      // 0x0BC SDMA_DONE
+    Sdma2Done_Handler,      // 0x0C0 SDMA_DONE
+    Sdma3Done_Handler,      // 0x0C4 SDMA_DONE
+    Sdma4Done_Handler,      // 0x0C8 SDMA_DONE
+    Sdma5Done_Handler,      // 0x0CC SDMA_DONE
+    Sdma6Done_Handler,      // 0x0D0 SDMA_DONE
+    Sdma7Done_Handler,      // 0x0D4 SDMA_DONE
+    Sdma8Done_Handler,      // 0x0D8 SDMA_DONE
+    Sdma9Done_Handler,      // 0x0DC SDMA_DONE
+    Sdma10Done_Handler,     // 0x0E0 SDMA_DONE
+    Sdma11Done_Handler,     // 0x0E4 SDMA_DONE
+    ApPDMClkOn_Handler,     // 0x0E8 AP_PDM_CLK_ON
+    ApPDMClkOff_Handler,    // 0x0EC AP_PDM_CLK_OFF
+    Dmac0BlkDone_Handler,   // 0x0F0 DMAC0_BLK_DONE
+    Dmac0BufDone_Handler,   // 0x0F4 DMAC0_BUF_DONE
+    Dmac1BlkDone_Handler,   // 0x0F8 DMAC1_BLK_DONE
+    Dmac1BufDone_Handler,   // 0x0FC DMAC1_BUF_DONE
+    Sdma0Done_Handler,      // 0x100 SDMA_DONE[0]
+    SdmaErr_Handler,        // 0x104 SDMA_ERR
+    I2S_SlvM4TxOr_Handler,  // 0x108 I2SSLV_M4_tx_or_intr
+    lpsdVoiceOffHandler,    // 0x10C LPSD_VOICE_OFF
+    dmicVoiceOffHandler,    // 0x110 DMIC_VOICE_OFF
+    0,                      // 0x114
+    0,                      // 0x118
+    0,                      // 0x11C
+    {.__val = (0x20021FFF)} // 0x120 Flash Boot header
+};
