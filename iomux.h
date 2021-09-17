@@ -22,8 +22,8 @@
 typedef struct
 {
     /* 0x000..0x0B4 Source and Electrical Configuration for Pads 0..45
-       [1:0] FSEL output function source selection
-       [4:3] CSEL output control source selection
+       [1:0] FSEL output function source selection, use IOMUX_PAD_xx_FSEL_*
+       [4:3] CSEL output control source selection, use IOMUX_PAD_xx_CSEL_*
        [5] OEN output driver 0=enable <1=disable>
        [7:6] P tri-state control <0=Z> 1=pullup 2=pulldown 3=keeper
        [9:8] E drive strength 0=2mA <1=4mA> 2=8mA 3=12mA
@@ -32,7 +32,7 @@ typedef struct
        [12] SMT schmitt trigger <0=disable> 1=enable 
        
        Pad43 is MISC->LOCK protected */
-    volatile uint32_t PAD_CTRL[46];
+    volatile uint32_t PAD[46];
     volatile uint32_t reserved0B8[18];
     volatile uint32_t SDA0_SEL;            // 0x100
     volatile uint32_t SDA1_SEL;            // 0x104
@@ -75,24 +75,24 @@ typedef struct
     volatile uint32_t PDM_CLKIN_SEL;       // 0x1AC
 } IOMUX_typedef;
 
-#define IOMUX_PAD_CTRL_CSEL_OTHER 0x0008
-#define IOMUX_PAD_CTRL_CSEL_FPGA 0x0010
-#define IOMUX_PAD_CTRL_OEN_DISABLE 0x0020
-#define IOMUX_PAD_CTRL_P_PULLUP 0x0040
-#define IOMUX_PAD_CTRL_P_PULLDOWN 0x0080
-#define IOMUX_PAD_CTRL_P_KEEPER 0x00C0
-#define IOMUX_PAD_CTRL_E_2MA 0x0000
-#define IOMUX_PAD_CTRL_E_4MA 0x0100
-#define IOMUX_PAD_CTRL_E_8MA 0x0200
-#define IOMUX_PAD_CTRL_E_12MA 0x0300
-#define IOMUX_PAD_CTRL_SR_FAST 0x0400
-#define IOMUX_PAD_CTRL_REN_ENABLE 0x0800
-#define IOMUX_PAD_CTRL_SMT_ENABLE 0x1000
+#define IOMUX_PAD_CSEL_OTHER 0x0008
+#define IOMUX_PAD_CSEL_FPGA 0x0010
+#define IOMUX_PAD_OEN_DISABLE 0x0020
+#define IOMUX_PAD_P_PULLUP 0x0040
+#define IOMUX_PAD_P_PULLDOWN 0x0080
+#define IOMUX_PAD_P_KEEPER 0x00C0
+#define IOMUX_PAD_E_2MA 0x0000
+#define IOMUX_PAD_E_4MA 0x0100
+#define IOMUX_PAD_E_8MA 0x0200
+#define IOMUX_PAD_E_12MA 0x0300
+#define IOMUX_PAD_SR_FAST 0x0400
+#define IOMUX_PAD_REN_ENABLE 0x0800
+#define IOMUX_PAD_SMT_ENABLE 0x1000
 
-#define IOMUX_PAD_CTRL_6_FSEL_GPIO0 0x3
-#define IOMUX_PAD_CTRL_18_FSEL_GPIO4 0x3
-#define IOMUX_PAD_CTRL_21_FSEL_GPIO5 0x3
-#define IOMUX_PAD_CTRL_22_FSEL_GPIO6 0x3
+#define IOMUX_PAD_6_FSEL_GPIO0 0x3
+#define IOMUX_PAD_18_FSEL_GPIO4 0x3
+#define IOMUX_PAD_21_FSEL_GPIO5 0x3
+#define IOMUX_PAD_22_FSEL_GPIO6 0x3
 
 #define IOMUX_UART_RXD_SEL_PAD45 0x0004
 
