@@ -6,7 +6,7 @@ FLAGS=-mcpu=cortex-m4 -mthumb -mlittle-endian -mfloat-abi=hard -mfpu=fpv4-sp-d16
 CCFLAGS=$(FLAGS) -std=c99 
 LDFLAGS=$(FLAGS) -T "main.ld" -Xlinker --gc-sections -Wall -Werror -Wl,--fatal-warnings --specs=nano.specs --specs=nosys.specs -Wl,--no-wchar-size-warning 
 
-DEPS=*.h
+DEPS=regs/*.h
 
 %.o: %.c $(DEPS)
 	$(CC) -o $@ -c $< $(CCFLAGS)

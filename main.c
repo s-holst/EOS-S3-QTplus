@@ -16,14 +16,14 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "pmu.h"
-#include "cru.h"
-#include "iomux.h"
-#include "ffe.h"
-#include "intr.h"
-#include "uart.h"
-#include "misc.h"
-#include "aip.h"
+#include "regs/pmu.h"
+#include "regs/cru.h"
+#include "regs/iomux.h"
+#include "regs/ffe.h"
+#include "regs/intr.h"
+#include "regs/uart.h"
+#include "regs/misc.h"
+#include "regs/aip.h"
 
 void dbg_ch(int c)
 {

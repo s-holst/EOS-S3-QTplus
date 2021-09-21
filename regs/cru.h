@@ -20,7 +20,7 @@
    External clock source of QTPLUS is a 32768 Hz crystal, called Real-Time Clock (RTC).
    Main system clock alternatives:
     1. On-chip High Speed Oscillator (HSO) driven by RTC up to 80 MHz (see: aip.h)
-    2. Fast clock via GPIO6, enabled by bootstrapping GPIO8/GPIO9 or registers.
+    2. Fast clock via Pad6, enabled by bootstrapping Pad8/Pad9 or registers.
 */
 
 #include <stdint.h>
@@ -29,12 +29,12 @@
 
 typedef struct
 {
-    volatile uint32_t CLK_CTRL_A_0;           // 0x000 C10
+    volatile uint32_t CLK_CTRL_A_0;           // 0x000 C10(M4-AHB/SRAM/VoiceSS,80MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <4=divBy6>
     volatile uint32_t CLK_CTRL_A_1;           // 0x004
     volatile uint32_t CLK_CTRL_B_0;           // 0x008 C02
     volatile uint32_t reserved;               //
-    volatile uint32_t CLK_CTRL_C_0;           // 0x010 C08X4(FFE,40MHz) divider: [9] en; div by ([8:0]+2) 0..6..510
-    volatile uint32_t CLK_CTRL_D_0;           // 0x014 C11(UART/WDT/TIMER,10MHz) divider: [9] en; div by ([8:0]+2) 0..6..510
+    volatile uint32_t CLK_CTRL_C_0;           // 0x010 C08X4(FFE,40MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <4=divBy6>
+    volatile uint32_t CLK_CTRL_D_0;           // 0x014 C11(UART/WDT/TIMER,10MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <4=divBy6>
     volatile uint32_t CLK_CTRL_E_0;           // 0x018 C12
     volatile uint32_t reserved1;              //
     volatile uint32_t CLK_CTRL_F_0;           // 0x020 C16
