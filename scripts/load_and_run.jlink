@@ -1,0 +1,5 @@
+reset
+loadbin main.bin 0x0
+reset
+go
+quit

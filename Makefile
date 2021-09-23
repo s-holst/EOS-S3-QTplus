@@ -18,8 +18,11 @@ main.bin: main.elf
 	arm-none-eabi-objcopy -O binary main.elf main.bin
 
 
-.PHONY: all clean
+.PHONY: all run clean
 all: main.bin
 
+run: main.bin
+	JLinkExe -Device Cortex-M4 -If SWD -Speed 4000 -autoconnect 1 -CommandFile scripts/load_and_run.jlink
+	
 clean:
 	-rm -f *.o main.elf

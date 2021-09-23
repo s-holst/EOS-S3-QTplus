@@ -58,8 +58,8 @@ void dbg_printf(const char *format, ...)
 
 int wb_write(uint8_t ucAddr, uint8_t ucData)
 {
-    if (FFE->CSR & (FFE_CSR_BUSY | FFE_CSR_MASTER_START))
-        return -1;
+    while (FFE->CSR & (FFE_CSR_BUSY | FFE_CSR_MASTER_START))
+        ;
     FFE->ADDR = ucAddr;
     FFE->WDATA = ucData;
     FFE->CSR = FFE_CSR_I2C0MUX_SEL_WBMASTER | FFE_CSR_MASTER_WR_EN | FFE_CSR_MASTER_START | FFE_CSR_MUX_WB_SM;
@@ -68,6 +68,8 @@ int wb_write(uint8_t ucAddr, uint8_t ucData)
 
 int wb_read(uint8_t ucAddr, uint8_t *pucData)
 {
+    while (FFE->CSR & (FFE_CSR_BUSY | FFE_CSR_MASTER_START))
+        ;
     FFE->ADDR = ucAddr;
     FFE->CSR = FFE_CSR_I2C0MUX_SEL_WBMASTER | FFE_CSR_MASTER_START | FFE_CSR_MUX_WB_SM;
     while (FFE->CSR & (FFE_CSR_BUSY | FFE_CSR_MASTER_START))
@@ -212,12 +214,10 @@ int main(void)
     wb_write(WB_I2C_PRELO, 15);
     wb_write(WB_I2C_MCR, WB_I2C_MCR_EN_Msk);
 
-    // Initialize LIS2D
+    dbg_str("\n\nInitializing LIS2DH12...\n");
     i2c_write_reg(0x18, 0x23, 0x80);
     i2c_write_reg(0x18, 0x20, 0x57);
     i2c_write_reg(0x18, 0x1f, 0xC0);
-
-    dbg_str("\n\nhello\n\n");
 
     uint32_t counter;
     uint8_t b[10];
