@@ -14,9 +14,12 @@ DEPS=regs/*.h
 main.elf: startup.o main.o
 	$(LD) -o $@ $^ $(LDFLAGS)
 
+main.bin: main.elf
+	arm-none-eabi-objcopy -O binary main.elf main.bin
+
 
 .PHONY: all clean
-all: main.elf
+all: main.bin
 
 clean:
 	-rm -f *.o main.elf
