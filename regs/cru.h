@@ -31,16 +31,16 @@ typedef struct
 {
     volatile uint32_t CLK_CTRL_A_0;           // 0x000 C10(M4-AHB/SRAM/VoiceSS,80MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <4=divBy6>
     volatile uint32_t CLK_CTRL_A_1;           // 0x004
-    volatile uint32_t CLK_CTRL_B_0;           // 0x008 C02
+    volatile uint32_t CLK_CTRL_B_0;           // 0x008 C02 [9] <1=divide> 0=passthrough [8:0]+2=divBy <4=divBy6>
     volatile uint32_t reserved;               //
     volatile uint32_t CLK_CTRL_C_0;           // 0x010 C08X4(FFE,40MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <4=divBy6>
-    volatile uint32_t CLK_CTRL_D_0;           // 0x014 C11(UART/WDT/TIMER,10MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <4=divBy6>
+    volatile uint32_t CLK_CTRL_D_0;           // 0x014 C11(UART/WDT/TIMER,10MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <14=divBy16>
     volatile uint32_t CLK_CTRL_E_0;           // 0x018 C12
     volatile uint32_t reserved1;              //
     volatile uint32_t CLK_CTRL_F_0;           // 0x020 C16
     volatile uint32_t CLK_CTRL_F_1;           // 0x024
     volatile uint32_t CLK_CTRL_G_0;           // 0x028 C18
-    volatile uint32_t CLK_CTRL_H_0;           // 0x02C C19
+    volatile uint32_t CLK_CTRL_H_0;           // 0x02C C19(ADC,typ1MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <14=divBy16>
     volatile uint32_t reserved2;              //
     volatile uint32_t CLK_CTRL_I_0;           // 0x034 C21
     volatile uint32_t CLK_CTRL_I_1;           // 0x038
@@ -85,23 +85,8 @@ typedef struct
     volatile uint32_t CLK_SWITCH_FOR_G;
 } CRU_typedef;
 
-#define CRU_CLK_CTRL_x_0_DIV_BY_1 0x000
-#define CRU_CLK_CTRL_x_0_DIV_BY_2 0x200
-#define CRU_CLK_CTRL_x_0_DIV_BY_3 0x201
-#define CRU_CLK_CTRL_x_0_DIV_BY_4 0x202
-#define CRU_CLK_CTRL_x_0_DIV_BY_5 0x203
-#define CRU_CLK_CTRL_x_0_DIV_BY_6 0x204
-#define CRU_CLK_CTRL_x_0_DIV_BY_7 0x205
-#define CRU_CLK_CTRL_x_0_DIV_BY_8 0x206
-#define CRU_CLK_CTRL_x_0_DIV_BY_9 0x207
-#define CRU_CLK_CTRL_x_0_DIV_BY_10 0x208
-#define CRU_CLK_CTRL_x_0_DIV_BY_11 0x209
-#define CRU_CLK_CTRL_x_0_DIV_BY_12 0x20A
-#define CRU_CLK_CTRL_x_0_DIV_BY_13 0x20B
-#define CRU_CLK_CTRL_x_0_DIV_BY_14 0x20C
-#define CRU_CLK_CTRL_x_0_DIV_BY_15 0x20D
-#define CRU_CLK_CTRL_x_0_DIV_BY_16 0x20E
-#define CRU_CLK_CTRL_x_0_DIV_BY_17 0x20F
+// a divisor >= 2 enables the divider and sets its parameter to divisor-2.
+#define CRU_CLK_CTRL_x_0_DIV_BY(x) ((x) < 2 ? 0x000 : (0x200 | ((x)-2)))
 
 #define CRU_C01_CLK_GATE_PATH_3_Msk 0x08
 

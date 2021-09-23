@@ -24,6 +24,7 @@
 #include "regs/uart.h"
 #include "regs/misc.h"
 #include "regs/aip.h"
+#include "regs/adc.h"
 
 void dbg_ch(int c)
 {
@@ -171,10 +172,10 @@ int main(void)
     MISC->LOCK_KEY_CTRL = MISC_LOCK_KEY_CTRL_UNLOCK;
     CRU->C11_CLK_GATE |= CRU_C11_CLK_GATE_PATH_0_Msk;
     MISC->LOCK_KEY_CTRL = 0;
-    CRU->CLK_CTRL_D_0 = 0x222;
+    CRU->CLK_CTRL_D_0 = CRU_CLK_CTRL_x_0_DIV_BY(36);
 
     // Start clock C08X4 = 36 MHz and C08X1 = 9 MHz for I2C
-    CRU->CLK_CTRL_C_0 = CRU_CLK_CTRL_x_0_DIV_BY_2;
+    CRU->CLK_CTRL_C_0 = CRU_CLK_CTRL_x_0_DIV_BY(2);
     CRU->C01_CLK_GATE |= CRU_C01_CLK_GATE_PATH_3_Msk;
     CRU->C08_X1_CLK_GATE |= CRU_C08_X1_CLK_GATE_PATH_0_Msk;
     CRU->C08_X4_CLK_GATE |= CRU_C08_X4_CLK_GATE_PATH_0_Msk;
@@ -190,10 +191,10 @@ int main(void)
     IOMUX->SDA0_SEL = 1;
     IOMUX->SCL0_SEL = 1;
 
-    IOMUX->PAD[6] = IOMUX_PAD_6_FSEL_GPIO0 | IOMUX_PAD_OEN_DISABLE | IOMUX_PAD_REN_ENABLE;
-    IOMUX->PAD[18] = IOMUX_PAD_18_FSEL_GPIO4 | IOMUX_PAD_E_4MA; // Route GPIO4 -> Blue LED on Pad 18
-    IOMUX->PAD[21] = IOMUX_PAD_21_FSEL_GPIO5 | IOMUX_PAD_E_4MA; // Route GPIO5 -> Green LED on Pad 21
-    IOMUX->PAD[22] = IOMUX_PAD_22_FSEL_GPIO6 | IOMUX_PAD_E_4MA; // Route GPIO6 -> Red LED on Pad 22
+    IOMUX->PAD[6] = IOMUX_PAD_6_FSEL_GPIO0 | IOMUX_PAD_OEN_DISABLE | IOMUX_PAD_REN_ENABLE; // USR button
+    IOMUX->PAD[18] = IOMUX_PAD_18_FSEL_GPIO4 | IOMUX_PAD_E_4MA;                            // Route GPIO4 -> Blue LED on Pad 18
+    IOMUX->PAD[21] = IOMUX_PAD_21_FSEL_GPIO5 | IOMUX_PAD_E_4MA;                            // Route GPIO5 -> Green LED on Pad 21
+    IOMUX->PAD[22] = IOMUX_PAD_22_FSEL_GPIO6 | IOMUX_PAD_E_4MA;                            // Route GPIO6 -> Red LED on Pad 22
 
     // Configure PL011 UART
     UART->CR = 0; // first, disable UART
@@ -208,6 +209,16 @@ int main(void)
     UART->IFLS = UART_IFLS_RX_1_8_FULL | UART_IFLS_TX_1_2_FULL;
     UART->CR = UART_CR_TX_ENABLE | UART_CR_RX_ENABLE | UART_CR_UART_ENABLE; // finally, enable UART
 
+    // Output high on Pad 26 for battery voltage monitoring
+    IOMUX->PAD[26] = IOMUX_PAD_26_FSEL_GPIO1 | IOMUX_PAD_E_4MA;
+    MISC->IO_OUTPUT |= (1 << 1);
+
+    // Enable ADC
+    CRU->CLK_CTRL_H_0 = CRU_CLK_CTRL_x_0_DIV_BY(72); // C19 = 1MHz
+    CRU->CLK_DIVIDER_CLK_GATING |= (1 << 7);
+    CRU->C19_CLK_GATE |= 1;
+    ADC->CTRL &= ~ADC_CTRL_START_Msk; // stop and conversions
+
     // Configure I2C frequency scaling factor s
     // I2Cfreq = C08X1Hz / (5*(s+1)+(int(s/4)*2+5))
     // Here: 9 MHz / (5*(15+1)+(int(15/4)*2+5)) = 99kHz
@@ -219,9 +230,10 @@ int main(void)
     i2c_write_reg(0x18, 0x20, 0x57);
     i2c_write_reg(0x18, 0x1f, 0xC0);
 
-    uint32_t counter;
+    uint32_t counter, adc_value;
     uint8_t b[10];
     uint8_t led_state, led_oldstate;
+    uint8_t adc_start = 1;
 
     while (1)
     {
@@ -238,11 +250,31 @@ int main(void)
 
         if (!(counter & 0x8ffff))
         {
+            // read accelerometer
             i2c_read_regs(0x18, 0x80 | 0x28, b, 6);
             int32_t x = ((b[0] >> 6) & 0x3) | ((int32_t)((int8_t)b[1])) << 2;
             int32_t y = ((b[2] >> 6) & 0x3) | ((int32_t)((int8_t)b[3])) << 2;
             int32_t z = ((b[4] >> 6) & 0x3) | ((int32_t)((int8_t)b[5])) << 2;
-            dbg_printf("X %6d Y %6d Z %6d USR %d\n", x, y, z, (~MISC->IO_INPUT) & 1);
+
+            // read ADC
+            if (adc_start)
+            {
+                ADC->CTRL |= ADC_CTRL_START_Msk; // start conversion
+                while (ADC->STATUS & ADC_STATUS_EOC_Msk)
+                    ;
+                adc_start = 0;
+            }
+            else
+            {
+                // wait for rising edge
+                if (ADC->STATUS & ADC_STATUS_EOC_Msk)
+                {
+                    adc_value = ADC->OUT;
+                    ADC->CTRL &= ~ADC_CTRL_START_Msk; // stop conversion
+                    adc_start = 1;
+                }
+            }
+            dbg_printf("X %6d Y %6d Z %6d USR %d BAT %d\n", x, y, z, (~MISC->IO_INPUT) & 1, adc_value);
         }
     }
 
