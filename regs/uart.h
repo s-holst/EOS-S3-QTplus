@@ -12,8 +12,8 @@
    See the License for the specific language governing permissions and
    limitations under the License. */
 
-#ifndef __UART_H
-#define __UART_H
+#ifndef __REGS_UART_H
+#define __REGS_UART_H
 
 #include <stdint.h>
 

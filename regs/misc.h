@@ -41,6 +41,6 @@ typedef struct
     volatile uint32_t FB_DEVICE_ID;       // 0x3FC
 } MISC_typedef;
 
-#define MISC_LOCK_KEY_CTRL_UNLOCK ((uint32_t)(0x1ACCE551))
+#define MISC_LOCK_KEY_CTRL_UNLOCK 0x1ACCE551
 
 #endif
