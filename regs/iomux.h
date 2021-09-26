@@ -25,7 +25,7 @@ typedef struct
        [1:0] FSEL output function source selection, use IOMUX_PAD_xx_FSEL_*
        [4:3] CSEL output control source selection <0=A0reg> 1=others 2=fabric (some pad's default is 1)
        [5] OEN output driver 0=enable <1=disable>
-       [7:6] P tri-state control <0=Z> 1=pullup 2=pulldown 3=keeper
+       [7:6] P tri-state control <0=nopull> 1=pullup 2=pulldown 3=keeper
        [9:8] E drive strength 0=2mA <1=4mA> 2=8mA 3=12mA
        [10] SR slew rate <0=slow> 1=fast
        [11] REN receive enable <0=disable> 1=enable
@@ -307,6 +307,15 @@ typedef struct
 
 // input function destination selection (pad -> chip function)
 
+#define IOMUX_SDA0_SEL_CONST1 0
+#define IOMUX_SDA0_SEL_PAD1 1
+
+#define IOMUX_SCL0_SEL_CONST1 0
+#define IOMUX_SCL0_SEL_PAD0 1
+
 #define IOMUX_UART_RXD_SEL_PAD45 4
+
+#define IOMUX_SPIm_MISO_SEL_PAD36 0
+#define IOMUX_SPIm_MISO_SEL_CONST0 1
 
 #endif

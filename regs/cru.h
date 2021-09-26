@@ -31,7 +31,7 @@ typedef struct
 {
     volatile uint32_t CLK_CTRL_A_0;           // 0x000 C10(M4-AHB/SRAM/VoiceSS,80MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <4=divBy6>
     volatile uint32_t CLK_CTRL_A_1;           // 0x004
-    volatile uint32_t CLK_CTRL_B_0;           // 0x008 C02 [9] <1=divide> 0=passthrough [8:0]+2=divBy <4=divBy6>
+    volatile uint32_t CLK_CTRL_B_0;           // 0x008 C02(SPIm/eFUSE/FB/A1,40MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <4=divBy6>
     volatile uint32_t reserved;               //
     volatile uint32_t CLK_CTRL_C_0;           // 0x010 C08X4(FFE,40MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <4=divBy6>
     volatile uint32_t CLK_CTRL_D_0;           // 0x014 C11(UART/WDT/TIMER,10MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <14=divBy16>
@@ -70,7 +70,7 @@ typedef struct
     volatile uint32_t CRU_GENERAL;            // 0x104
     volatile uint32_t CRU_DEBUG;              // 0x108
     volatile uint32_t reversed7[1];           //
-    volatile uint32_t C01_CLK_DIV;            // 0x110
+    volatile uint32_t C01_CLK_DIV;            // 0x110 C01(SPImConfig/eFUSE/I2S/AHB2APB/CfgDMA/FFE/FIFO/SDMA/A0,10MHz) Source:C10 [4] 0=gated <1=running> [3:0]+1=divBy <1=divBy2>
     volatile uint32_t C09_CLK_DIV;            // 0x114
     volatile uint32_t C31_CLK_DIV;            // 0x118
     volatile uint32_t C09_CLK_GATE;           // 0x11C

@@ -58,8 +58,8 @@ int i2c_init()
     // Route I2C to Pad0 and Pad1
     IOMUX->PAD[0] = IOMUX_PAD_CSEL_OTHER | IOMUX_PAD_P_PULLUP | IOMUX_PAD_E_4MA | IOMUX_PAD_REN_ENABLE;
     IOMUX->PAD[1] = IOMUX_PAD_CSEL_OTHER | IOMUX_PAD_P_PULLUP | IOMUX_PAD_E_4MA | IOMUX_PAD_REN_ENABLE;
-    IOMUX->SDA0_SEL = 1;
-    IOMUX->SCL0_SEL = 1;
+    IOMUX->SDA0_SEL = IOMUX_SCL0_SEL_PAD0;
+    IOMUX->SCL0_SEL = IOMUX_SDA0_SEL_PAD1;
 
     // Configure I2C frequency scaling factor s
     // I2Cfreq = C08X1Hz / (5*(s+1)+(int(s/4)*2+5))

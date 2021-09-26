@@ -50,20 +50,20 @@ extern void _start(void) __attribute__((noreturn)); // C library entry point
 
 void Reset_Handler(void)
 {
-    uint32_t *pSrc, *pDest;
+  uint32_t *pSrc, *pDest;
 
-    pSrc = &__etext;
-    pDest = &__data_start__;
-    while (pDest < &__data_end__)
-        *pDest++ = *pSrc++;
+  pSrc = &__etext;
+  pDest = &__data_start__;
+  while (pDest < &__data_end__)
+    *pDest++ = *pSrc++;
 
-    _start();
+  _start();
 }
 
 void Default_Handler(void)
 {
-    while (1)
-        ;
+  while (1)
+    ;
 }
 
 __attribute__((weak, alias("Default_Handler"))) extern void NMI_Handler(void);
@@ -135,9 +135,9 @@ typedef void (*intfunc)(void);
 
 typedef union
 {
-    void (*int_func)(void);
-    void *__ptr;
-    int __val;
+  void (*int_func)(void);
+  void *__ptr;
+  int __val;
 } intvec_elem;
 
 const intvec_elem __Vectors[] __attribute__((section(".isr_vector"))) = {
@@ -213,5 +213,9 @@ const intvec_elem __Vectors[] __attribute__((section(".isr_vector"))) = {
     0,                      // 0x114
     0,                      // 0x118
     0,                      // 0x11C
-    {.__val = (0x20021FFF)} // 0x120 Flash Boot header
-};
+    /* 0x120 Configuration Manager boot header.
+       32-bit word stored in little-endian format!
+       0x20 is a fixed EOS S3 id checked by bootloader (stored at 0x123).
+       0x02 is a baudrate multiplier (SPI->BAUDR is set to 2* this value) (stored at 0x122).
+       0x1FFF is the number of 8-byte words in the image (here: 64kiBytes) (stored at 0x120). */
+    {.__val = (0x20021FFF)}};
