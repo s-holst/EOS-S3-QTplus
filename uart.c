@@ -49,7 +49,7 @@ int uart_init()
 
 void uart_tx(int c)
 {
-    while ((UART->TFR & UART_TFR_TX_FIFO_FULL))
+    while ((UART->TFR & UART_TFR_BUSY))
         ;
     UART->DR = c;
 }
