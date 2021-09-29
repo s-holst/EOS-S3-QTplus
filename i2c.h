@@ -24,4 +24,7 @@ int i2c_write_regs(uint8_t ucDevAddr, uint8_t ucRegAddr, uint8_t *pucData, uint3
 int i2c_write_reg(uint8_t ucDevAddr, uint8_t ucRegAddr, uint8_t ucData);
 int i2c_read_regs(uint8_t ucDevAddr, uint8_t ucRegAddr, uint8_t *pucData, uint32_t uiLength);
 
+int i2c_accel_init();
+int i2c_accel_read(int32_t *piX, int32_t *piY, int32_t *piZ);
+
 #endif

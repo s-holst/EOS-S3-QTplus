@@ -147,3 +147,24 @@ int i2c_read_regs(uint8_t ucDevAddr, uint8_t ucRegAddr, uint8_t *pucData, uint32
 
     return 0;
 }
+
+int i2c_accel_init()
+{
+    i2c_init();
+    i2c_write_reg(0x18, 0x23, 0x80);
+    i2c_write_reg(0x18, 0x20, 0x57);
+    i2c_write_reg(0x18, 0x1f, 0xC0);
+
+    return 0;
+}
+
+int i2c_accel_read(int32_t *piX, int32_t *piY, int32_t *piZ)
+{
+    uint8_t b[6];
+    i2c_read_regs(0x18, 0x80 | 0x28, b, 6);
+    *piX = ((b[0] >> 6) & 0x3) | ((int32_t)((int8_t)b[1])) << 2;
+    *piY = ((b[2] >> 6) & 0x3) | ((int32_t)((int8_t)b[3])) << 2;
+    *piZ = ((b[4] >> 6) & 0x3) | ((int32_t)((int8_t)b[5])) << 2;
+
+    return 0;
+}
