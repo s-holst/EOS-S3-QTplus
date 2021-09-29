@@ -54,6 +54,18 @@ void uart_tx(int c)
     UART->DR = c;
 }
 
+int uart_rx_available()
+{
+    return !(UART->TFR & UART_TFR_RX_FIFO_EMPTY);
+}
+
+int uart_rx()
+{
+    while (!uart_rx_available())
+        ;
+    return UART->DR;
+}
+
 // re-targeting basic write function enables printf.
 int _write(int file, char *ptr, int len)
 {

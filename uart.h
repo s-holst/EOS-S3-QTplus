@@ -17,5 +17,7 @@
 
 int uart_init();
 void uart_tx(int c);
+int uart_rx_available();
+int uart_rx();
 
 #endif
