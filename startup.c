@@ -50,20 +50,20 @@ extern void _start(void) __attribute__((noreturn)); // C library entry point
 
 void Reset_Handler(void)
 {
-  uint32_t *pSrc, *pDest;
+    uint32_t *pSrc, *pDest;
 
-  pSrc = &__etext;
-  pDest = &__data_start__;
-  while (pDest < &__data_end__)
-    *pDest++ = *pSrc++;
+    pSrc = &__etext;
+    pDest = &__data_start__;
+    while (pDest < &__data_end__)
+        *pDest++ = *pSrc++;
 
-  _start();
+    _start();
 }
 
 void Default_Handler(void)
 {
-  while (1)
-    ;
+    while (1)
+        ;
 }
 
 __attribute__((weak, alias("Default_Handler"))) extern void NMI_Handler(void);
@@ -135,9 +135,9 @@ typedef void (*intfunc)(void);
 
 typedef union
 {
-  void (*int_func)(void);
-  void *__ptr;
-  int __val;
+    void (*int_func)(void);
+    void *__ptr;
+    int __val;
 } intvec_elem;
 
 const intvec_elem __Vectors[] __attribute__((section(".isr_vector"))) = {
