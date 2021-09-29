@@ -23,6 +23,8 @@
 #include "spi.h"
 #include "io.h"
 
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+
 extern uint32_t __etext;
 extern uint32_t __data_start__;
 extern uint32_t __data_end__;
@@ -134,10 +136,42 @@ int main(void)
                     printf("Aborted.\n");
                 io_set_red(0);
                 break;
+            case 'f':
+                printf("Write currently loaded image (%d bytes) to flash?\n", rom_bytes);
+                printf("<y> - Yes\n<any other key> - Abort.\n");
+                io_set_green(1);
+                io_set_red(1);
+                if ((uart_rx() & 0xff) == 'y')
+                {
+                    printf("Writing...  ('*'=sector erase, '.'=page prog. success, 'E'=page prog. error)\n");
+                    io_set_green(0);
+                    for (int sector_offset = 0; sector_offset < rom_bytes; sector_offset += 4096)
+                    {
+                        uint32_t bytes_to_write = MIN(4096, rom_bytes - sector_offset);
+                        printf("*");
+                        spi_flash_erase_sector(sector_offset);
+                        for (int page_offset = 0; page_offset < bytes_to_write; page_offset += 256)
+                        {
+                            uint32_t addr = sector_offset + page_offset;
+                            uint8_t *data = (uint8_t *)(addr);
+                            if (spi_flash_program_and_verify_page(addr, data, MIN(256, rom_bytes - addr)))
+                                printf("E");
+                            else
+                                printf(".");
+                        }
+                        printf("\n");
+                    }
+                    printf("Done.\n");
+                }
+                else
+                    printf("Aborted.\n");
+                io_set_red(0);
+                break;
             default:
                 printf("<a> - read accelerometer and battery ADC.\n");
                 printf("<r> - read one page of flash memory.\n");
                 printf("<e> - erase a sector of flash memory.\n");
+                printf("<f> - flash currently loaded image.\n");
                 printf("<any other key> - print this message.\n\n");
                 break;
             }
