@@ -11,7 +11,7 @@ DEPS=regs/*.h
 %.o: %.c $(DEPS)
 	$(CC) -o $@ -c $< $(CCFLAGS)
 
-main.elf: startup.o main.o uart.o i2c.o
+main.elf: startup.o main.o uart.o i2c.o spi.o io.o
 	$(LD) -o $@ $^ $(LDFLAGS)
 
 main.bin: main.elf

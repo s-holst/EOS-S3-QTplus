@@ -17,174 +17,130 @@
 
 #include "regs/aip.h"
 #include "regs/cru.h"
-#include "regs/iomux.h"
-#include "regs/misc.h"
-#include "regs/adc.h"
-#include "regs/spi.h"
 
 #include "uart.h"
 #include "i2c.h"
+#include "spi.h"
+#include "io.h"
 
-int spi_init()
+extern uint32_t __etext;
+extern uint32_t __data_start__;
+extern uint32_t __data_end__;
+
+typedef struct
 {
-    IOMUX->PAD[34] = IOMUX_PAD_34_FSEL_SPIm_CLK | IOMUX_PAD_E_4MA;
-    IOMUX->PAD[38] = IOMUX_PAD_38_FSEL_SPIm_MOSI | IOMUX_PAD_E_4MA;
-    IOMUX->PAD[39] = IOMUX_PAD_39_FSEL_SPIm_SSn1 | IOMUX_PAD_E_4MA;
-    IOMUX->PAD[36] = IOMUX_PAD_36_FSEL_SPIm_MISO | IOMUX_PAD_OEN_DISABLE | IOMUX_PAD_REN_ENABLE;
-    IOMUX->SPIm_MISO_SEL = IOMUX_SPIm_MISO_SEL_PAD36;
-
-    SPI->SSIENR = 0; // disable chip
-    SPI->BAUDR = 8;  // SPI master clock = 4.5 MHz (divBy8, Source:C02)
-    SPI->SER = 0;
-    SPI->SSIENR = 1;
-
-    return 0;
-}
-
-int spi_txrx(uint8_t *pucTxData, const uint32_t uiTxLen, uint8_t *pucRxData, const uint32_t uiRxLen)
-{
-    // configure transfer
-    SPI->SSIENR = 0;
-    SPI->CTRLR0 = SPI_CTRLR0_TMOD_EEPROM | SPI_CTRLR0_DATA_FRAME_SIZE(8);
-    SPI->CTRLR1 = uiRxLen - 1; // number of response frames
-    SPI->SSIENR = 1;
-
-    for (int i = 0; i < uiTxLen; i++)
-    {
-        SPI->DR0 = pucTxData[i];
-    }
-
-    SPI->SER = 1; // start transaction to slave 1
-
-    // wait for tx to finish
-    while (!(SPI->SR & SPI_SR_TFE) && (SPI->SR & SPI_SR_BUSY))
-        ;
-
-    // wait for response frames
-    for (int i = 0; i < uiRxLen; i++)
-    {
-        while (!(SPI->SR & SPI_SR_RFNE))
-            ;
-        pucRxData[i] = SPI->DR0;
-    }
-
-    SPI->SER = 0;
-
-    return 0;
-}
+    uint16_t dwords;    // download size in double(8-byte)-words minus 1.
+    uint8_t baudr_mult; // baudrate multiplier SPI->BAUDR is set to 2*baudr_mult.
+    uint8_t id;         // id for EOS S3, must be 0x20.
+} tFlashBootHeader;
 
 int main(void)
 {
-    // Set main clock to 72 MHz
+    // Set main clock to 72 MHz:
     AIP->OSC_CTRL_1 = 2194;
     CRU->CLK_CTRL_A_0 = 0;                          // C10=72MHz
     CRU->C01_CLK_DIV = 0x017;                       // C01=9MHz (divBy8)
     CRU->CLK_CTRL_B_0 = CRU_CLK_CTRL_x_0_DIV_BY(2); // C02=36MHz
 
-    uart_init(); // enables printf
-    i2c_init();
+    // Set up SysTick:
+    *((uint32_t *)0xE000E014) = 0x00ffffff;
+    *((uint32_t *)0xE000E018) = 0;
+    *((uint32_t *)0xE000E010) = 5;
+
+    // Initialize 115200 8N1 UART on pads 44/45 for printf and output banner:
+    uart_init();
+    printf("\n\n\n\n");
+    printf("SparkFun QuickLogic Thing Plus - EOS S3 MCU + eFPGA Bare-Bones Demo\n");
+    printf("https://github.com/s-holst/EOS-S3-QTplus\n");
+    uint32_t rom_bytes = (uint32_t)&__etext + ((uint32_t)&__data_end__ - (uint32_t)&__data_start__);
+    printf("ROM image size: %d (0x%x) bytes\n", rom_bytes, rom_bytes);
+
+    // Set up and verify flash chip communication:
     spi_init();
+    tFlashBootHeader header;
+    printf("Flash ID: %x\n", spi_flash_read_id());
+    spi_flash_read(0x120, (uint8_t *)&header, sizeof(header));
+    printf("CfgSM boot header at 0x120: id=%x ", header.id);
+    if (header.id == 0x20)
+        printf("speed=%d size=%dkiBytes\n", header.baudr_mult, (1 + header.dwords) * 8 / 1024);
+    else
+        printf("<invalid>\n");
 
-    IOMUX->PAD[6] = IOMUX_PAD_6_FSEL_GPIO0 | IOMUX_PAD_OEN_DISABLE | IOMUX_PAD_REN_ENABLE; // USR button
-    IOMUX->PAD[18] = IOMUX_PAD_18_FSEL_GPIO4 | IOMUX_PAD_E_4MA;                            // Route GPIO4 -> Blue LED on Pad 18
-    IOMUX->PAD[21] = IOMUX_PAD_21_FSEL_GPIO5 | IOMUX_PAD_E_4MA;                            // Route GPIO5 -> Green LED on Pad 21
-    IOMUX->PAD[22] = IOMUX_PAD_22_FSEL_GPIO6 | IOMUX_PAD_E_4MA;                            // Route GPIO6 -> Red LED on Pad 22
+    i2c_accel_init();
+    io_init();
 
-    // Output high on Pad 26 for battery voltage monitoring
-    IOMUX->PAD[26] = IOMUX_PAD_26_FSEL_GPIO1 | IOMUX_PAD_E_4MA;
-    MISC->IO_OUTPUT |= (1 << 1);
+    //int ret = spi_flash_program_and_verify_page(0, data, 256);
+    //printf("written. result %d\n", ret);
 
-    // Enable ADC
-    CRU->CLK_CTRL_H_0 = CRU_CLK_CTRL_x_0_DIV_BY(72); // C19 = 1MHz
-    CRU->CLK_DIVIDER_CLK_GATING |= (1 << 7);
-    CRU->C19_CLK_GATE |= 1;
-    ADC->CTRL &= ~ADC_CTRL_START_Msk; // stop and conversions
+    printf("\nPress <space> for help.\n");
 
-    printf("\n\nInitializing LIS2DH12...\n");
-    i2c_write_reg(0x18, 0x23, 0x80);
-    i2c_write_reg(0x18, 0x20, 0x57);
-    i2c_write_reg(0x18, 0x1f, 0xC0);
-
-    printf("\n\nReading Flash ID...\n");
-
-    uint8_t id[3];
-    uint8_t cmd = 0x9F;
-
-    spi_txrx(&cmd, 1, id, sizeof(id));
-    printf("Flash IDs: %02x %02x %02x\n", id[0], id[1], id[2]);
-
-    typedef struct
-    {
-        uint16_t dwords;    // download size in double(8-byte)-words minus 1.
-        uint8_t baudr_mult; // baudrate multiplier SPI->BAUDR is set to 2*baudr_mult.
-        uint8_t id;         // id for EOS S3, must be 0x20.
-    } flash_header_type;
-
-    uint8_t data[1024];
-    uint8_t rd_cmd[4];
-    rd_cmd[0] = 0x03;
-    rd_cmd[1] = 0;
-    rd_cmd[2] = 0;
-    rd_cmd[3] = 0;
-
-    spi_txrx(rd_cmd, 4, data, sizeof(data));
-
-    flash_header_type *header = (flash_header_type *)&data[0x120];
-    printf("CfgSM header: id=%x speed=%d size=%dkiBytes\n", header->id, header->baudr_mult, (1 + header->dwords) * 8 / 1024);
-
-    for (int i = 0; i < 512; i += 16)
-    {
-        printf("%04x", i);
-        for (int j = 0; j < 16; j++)
-            printf(" %02x", data[i + j]);
-        printf("\n");
-    }
-
-    uint32_t counter, adc_value;
-    uint8_t b[10];
-    uint8_t led_state, led_oldstate;
-    uint8_t adc_start = 1;
+    uint8_t btn_oldstate;
+    uint32_t read_addr = 0;
+    uint32_t erase_addr = 0;
+    uint8_t data[256];
+    int32_t x, y, z;
 
     while (1)
     {
-        counter++;
+        // Faint flashing of green LED:
+        uint32_t systick = *((uint32_t *)(0xE000E018));
+        io_set_green(!(systick & 0xc0ff00));
 
-        // cycle through all combinations on GPIO4, GPIO5, GPIO6
-        led_state = ((counter >> 21) & 0x07) << 4;
-        if (led_state != led_oldstate)
+        // Report USR button state changes:
+        uint8_t btn_state = io_get_usrbtn();
+        if (btn_state != btn_oldstate)
         {
-            MISC->IO_OUTPUT |= led_state;
-            MISC->IO_OUTPUT &= led_state | ~(0x07 << 4);
-            led_oldstate = led_state;
+            if (btn_state)
+                printf("USR button pressed\n");
+            else
+                printf("USR button released\n");
+            btn_oldstate = btn_state;
         }
 
-        if (!(counter & 0x3fffff))
+        // Process commands from UART:
+        if (uart_rx_available())
         {
-            // read accelerometer
-            i2c_read_regs(0x18, 0x80 | 0x28, b, 6);
-            int32_t x = ((b[0] >> 6) & 0x3) | ((int32_t)((int8_t)b[1])) << 2;
-            int32_t y = ((b[2] >> 6) & 0x3) | ((int32_t)((int8_t)b[3])) << 2;
-            int32_t z = ((b[4] >> 6) & 0x3) | ((int32_t)((int8_t)b[5])) << 2;
-
-            // read ADC
-            if (adc_start)
+            switch (uart_rx() & 0xff)
             {
-                ADC->CTRL |= ADC_CTRL_START_Msk; // start conversion
-                while (ADC->STATUS & ADC_STATUS_EOC_Msk)
-                    ;
-                adc_start = 0;
-            }
-            else
-            {
-                // wait for rising edge
-                if (ADC->STATUS & ADC_STATUS_EOC_Msk)
+            case 'a':
+                i2c_accel_read(&x, &y, &z);
+                printf("X %6d Y %6d Z %6d BAT %d\n", x, y, z, io_adc_read());
+                break;
+            case 'r':
+                spi_flash_read(read_addr, data, 256);
+                for (int i = 0; i < 256; i += 16)
                 {
-                    adc_value = ADC->OUT;
-                    ADC->CTRL &= ~ADC_CTRL_START_Msk; // stop conversion
-                    adc_start = 1;
+                    printf("%06x", i + read_addr);
+                    for (int j = 0; j < 16; j++)
+                        printf(" %02x", data[i + j]);
+                    printf("\n");
                 }
+                read_addr += 256;
+                break;
+            case 'e':
+                printf("Erase a 4096-byte sector starting at 0x%x ?\n", erase_addr);
+                printf("<y> - Yes\n<any other key> - Abort.\n");
+                io_set_green(1);
+                io_set_red(1);
+                if ((uart_rx() & 0xff) == 'y')
+                {
+                    io_set_green(0);
+                    printf("Erasing...\n");
+                    spi_flash_erase_sector(erase_addr);
+                    printf("Done.\n");
+                    erase_addr += 4096;
+                }
+                else
+                    printf("Aborted.\n");
+                io_set_red(0);
+                break;
+            default:
+                printf("<a> - read accelerometer and battery ADC.\n");
+                printf("<r> - read one page of flash memory.\n");
+                printf("<e> - erase a sector of flash memory.\n");
+                printf("<any other key> - print this message.\n\n");
+                break;
             }
-            printf("X %6d Y %6d Z %6d USR %d BAT %d\n", x, y, z, (~MISC->IO_INPUT) & 1, adc_value);
         }
     }
 
