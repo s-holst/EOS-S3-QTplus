@@ -15,11 +15,16 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "regs/cru.h"
 #include "regs/iomux.h"
 #include "regs/spi.h"
 
 int spi_init()
 {
+
+    CRU->C01_CLK_DIV = 0x017;                       // C01=9MHz (divBy8) for SPI config
+    CRU->CLK_CTRL_B_0 = CRU_CLK_CTRL_x_0_DIV_BY(2); // C02=36MHz for SPI
+
     IOMUX->PAD[34] = IOMUX_PAD_34_FSEL_SPIm_CLK | IOMUX_PAD_E_4MA;
     IOMUX->PAD[38] = IOMUX_PAD_38_FSEL_SPIm_MOSI | IOMUX_PAD_E_4MA;
     IOMUX->PAD[39] = IOMUX_PAD_39_FSEL_SPIm_SSn1 | IOMUX_PAD_E_4MA;

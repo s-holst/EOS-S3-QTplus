@@ -14,6 +14,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <sys/param.h>
 
 #include "regs/aip.h"
 #include "regs/cru.h"
@@ -23,7 +24,7 @@
 #include "spi.h"
 #include "io.h"
 
-#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+extern uint32_t uptime_ms; // global from startup.c
 
 extern uint32_t __etext;
 extern uint32_t __data_start__;
@@ -38,23 +39,18 @@ typedef struct
 
 int main(void)
 {
-    // Set main clock to 72 MHz:
-    AIP->OSC_CTRL_1 = 2194;
-    CRU->CLK_CTRL_A_0 = 0;                          // C10=72MHz
-    CRU->C01_CLK_DIV = 0x017;                       // C01=9MHz (divBy8)
-    CRU->CLK_CTRL_B_0 = CRU_CLK_CTRL_x_0_DIV_BY(2); // C02=36MHz
-
-    // Set up SysTick:
-    *((uint32_t *)0xE000E014) = 0x00ffffff;
-    *((uint32_t *)0xE000E018) = 0;
-    *((uint32_t *)0xE000E010) = 5;
+    uint32_t rom_bytes = (uint32_t)&__etext + ((uint32_t)&__data_end__ - (uint32_t)&__data_start__);
+    uint8_t btn_oldstate = 0;
+    uint32_t read_addr = 0;
+    uint32_t erase_addr = 0;
+    uint8_t data[256];
+    int32_t x, y, z;
 
     // Initialize 115200 8N1 UART on pads 44/45 for printf and output banner:
     uart_init();
     printf("\n\n\n\n");
     printf("SparkFun QuickLogic Thing Plus - EOS S3 MCU + eFPGA Bare-Bones Demo\n");
     printf("https://github.com/s-holst/EOS-S3-QTplus\n");
-    uint32_t rom_bytes = (uint32_t)&__etext + ((uint32_t)&__data_end__ - (uint32_t)&__data_start__);
     printf("ROM image size: %d (0x%x) bytes\n", rom_bytes, rom_bytes);
 
     // Set up and verify flash chip communication:
@@ -71,22 +67,12 @@ int main(void)
     i2c_accel_init();
     io_init();
 
-    //int ret = spi_flash_program_and_verify_page(0, data, 256);
-    //printf("written. result %d\n", ret);
-
     printf("\nPress <space> for help.\n");
-
-    uint8_t btn_oldstate;
-    uint32_t read_addr = 0;
-    uint32_t erase_addr = 0;
-    uint8_t data[256];
-    int32_t x, y, z;
 
     while (1)
     {
-        // Faint flashing of green LED:
-        uint32_t systick = *((uint32_t *)(0xE000E018));
-        io_set_green(!(systick & 0xc0ff00));
+        // Flash green LED every 1.024s:
+        io_set_green(!(uptime_ms & 0x3ff));
 
         // Report USR button state changes:
         uint8_t btn_state = io_get_usrbtn();
@@ -106,7 +92,7 @@ int main(void)
             {
             case 'a':
                 i2c_accel_read(&x, &y, &z);
-                printf("X %6d Y %6d Z %6d BAT %d\n", x, y, z, io_adc_read());
+                printf("X %6d Y %6d Z %6d BAT %d uptime %d\n", x, y, z, io_adc_read(), uptime_ms);
                 break;
             case 'r':
                 spi_flash_read(read_addr, data, 256);
@@ -147,10 +133,10 @@ int main(void)
                     io_set_green(0);
                     for (int sector_offset = 0; sector_offset < rom_bytes; sector_offset += 4096)
                     {
-                        uint32_t bytes_to_write = MIN(4096, rom_bytes - sector_offset);
+                        uint32_t sector_bytes = MIN(4096, rom_bytes - sector_offset);
                         printf("*");
                         spi_flash_erase_sector(sector_offset);
-                        for (int page_offset = 0; page_offset < bytes_to_write; page_offset += 256)
+                        for (int page_offset = 0; page_offset < sector_bytes; page_offset += 256)
                         {
                             uint32_t addr = sector_offset + page_offset;
                             uint8_t *data = (uint8_t *)(addr);

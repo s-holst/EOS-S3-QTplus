@@ -43,10 +43,20 @@
 
 #include <stdint.h>
 
+#include "regs/aip.h"
+#include "regs/cru.h"
+
+uint32_t uptime_ms = 0; // global: uptime in milliseconds, always counting up, wraps in about 49 days.
+
 extern uint32_t __etext;
 extern uint32_t __data_start__;
 extern uint32_t __data_end__;
 extern void _start(void) __attribute__((noreturn)); // C library entry point
+
+void SysTick_Handler()
+{
+    uptime_ms++;
+}
 
 void Reset_Handler(void)
 {
@@ -56,6 +66,15 @@ void Reset_Handler(void)
     pDest = &__data_start__;
     while (pDest < &__data_end__)
         *pDest++ = *pSrc++;
+
+    // Set main clock to 72 MHz:
+    AIP->OSC_CTRL_1 = 2194;
+    CRU->CLK_CTRL_A_0 = 0; // C10=72MHz
+
+    // Set up SysTick:
+    *((uint32_t *)0xE000E014) = 72000; // reload value
+    *((uint32_t *)0xE000E018) = 0;
+    *((uint32_t *)0xE000E010) = 7; // use processor clock, enable interrupt, enable timer.
 
     _start();
 }
@@ -74,7 +93,6 @@ __attribute__((weak, alias("Default_Handler"))) extern void UsageFault_Handler(v
 __attribute__((weak, alias("Default_Handler"))) extern void SVC_Handler(void);
 __attribute__((weak, alias("Default_Handler"))) extern void DebugMon_Handler(void);
 __attribute__((weak, alias("Default_Handler"))) extern void PendSV_Handler(void);
-__attribute__((weak, alias("Default_Handler"))) extern void SysTick_Handler(void);
 __attribute__((weak, alias("Default_Handler"))) extern void SwInt2_Handler(void);
 __attribute__((weak, alias("Default_Handler"))) extern void SwInt1_Handler(void);
 __attribute__((weak, alias("Default_Handler"))) extern void Ffe0Msg_Handler(void);
