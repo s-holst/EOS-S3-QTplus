@@ -98,7 +98,7 @@ typedef struct
     volatile uint32_t M4_SRAM_SW_PD;          // 0x204
     volatile uint32_t MISC_SW_PD;             // 0x208
     volatile uint32_t AUDIO_SW_PD;            // 0x20C
-    volatile uint32_t FFE_FB_PF_SW_WU;        // 0x210
+    volatile uint32_t FFE_FB_PF_SW_WU;        // 0x210 [0] 1=FFEwakeup [1] 1=FBwakeup [2] 1=PFwakeup
     volatile uint32_t M4_SRAM_SW_WU;          // 0x214
     volatile uint32_t MISC_SW_WU;             // 0x218
     volatile uint32_t AUD_SRAM_SW_WU;         // 0x21C
@@ -111,8 +111,8 @@ typedef struct
     volatile uint32_t reserved9[1];           //
     volatile uint32_t FBVLPMinWidth;          // 0x3E8
     volatile uint32_t APRebootStatus;         // 0x3EC
-    volatile uint32_t GEN_PURPOSE_0;          // 0x3F0
-    volatile uint32_t FB_ISOLATION;           // 0x3F4
+    volatile uint32_t GEN_PURPOSE_0;          // 0x3F0 [9] FB_CFG_ENABLE
+    volatile uint32_t FB_ISOLATION;           // 0x3F4 [0] 1=isolated 0=released <1> on power up.
     volatile uint32_t GEN_PURPOSE_1;          // 0x3F8
 
 } PMU_typedef;
@@ -121,4 +121,5 @@ typedef struct
 #define PMU_FFE_FB_PF_SW_WU_FB_WU_Msk 0x2
 #define PMU_FFE_FB_PF_SW_WU_FFE_WU_Msk 0x1
 
+#define PMU_GEN_PURPOSE_0_FB_CFG_ENABLE (1 << 9)
 #endif

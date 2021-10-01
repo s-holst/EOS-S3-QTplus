@@ -63,8 +63,8 @@ typedef struct
     volatile uint32_t SW_CLK_SEL;          // 0x170
     volatile uint32_t SW_IO_SEL;           // 0x174
     volatile uint32_t reserved178[2];      //
-    volatile uint32_t FBIO_SEL_1;          // 0x180
-    volatile uint32_t FBIO_SEL_2;          // 0x184
+    volatile uint32_t FBIO_SEL_1;          // 0x180 [31:0] input from <0=0> <1=pad0..31>
+    volatile uint32_t FBIO_SEL_2;          // 0x184 [13:0] input from <0=0> <1=pad32..45>
     volatile uint32_t reserved188[2];      //
     volatile uint32_t SPI_SENSOR_MISO_SEL; // 0x190
     volatile uint32_t SPI_SENSOR_MOSI_SEL; // 0x194

@@ -9,4 +9,11 @@ To get started, have the toolchain installed, type `make`, and load the compiled
 
 It is also very much a work-in-progress. For now, only the most basic definitions are included. I'll be adding information as a learn more about this device. Feel free to send me PRs for the parts you care about.
 
+## Links
+
+* [SparkFun Product Page](https://www.sparkfun.com/products/17273)
+  * [Hookup Guide](https://learn.sparkfun.com/tutorials/quicklogic-thing-plus-eos-s3-hookup-guide)
+* [QuickLogic SDK with FreeRTOS](https://github.com/QuickLogic-Corp/qorc-sdk)
+
+
 

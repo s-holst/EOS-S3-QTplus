@@ -18,11 +18,15 @@
 
 #include "regs/aip.h"
 #include "regs/cru.h"
+#include "regs/iomux.h"
 
 #include "uart.h"
 #include "i2c.h"
 #include "spi.h"
 #include "io.h"
+#include "fpga.h"
+
+#include "hw/toggle_led/build/top_bit.h"
 
 extern uint32_t uptime_ms; // global from startup.c
 
@@ -90,6 +94,17 @@ int main(void)
         {
             switch (uart_rx() & 0xff)
             {
+            case 'f':
+                printf("Giving control of USR button and blue LED to FPGA...\n");
+                IOMUX->PAD[18] = IOMUX_PAD_18_FSEL_FBIO18 | IOMUX_PAD_E_4MA;
+                IOMUX->PAD[6] = IOMUX_PAD_6_FSEL_FBIO6 | IOMUX_PAD_OEN_DISABLE | IOMUX_PAD_REN_ENABLE;
+                IOMUX->PAD[7] = IOMUX_PAD_7_FSEL_FBIO7 | IOMUX_PAD_OEN_DISABLE | IOMUX_PAD_REN_ENABLE | IOMUX_PAD_P_PULLDOWN; // keep reset input low.
+                IOMUX->FBIO_SEL_1 = (1 << 6) | (1 << 7);
+
+                printf("Configuring FPGA...\n");
+                fpga_configure((uint32_t *)top_bit);
+                printf("Done. Toggle blue LED by pressing USR button.\n");
+                break;
             case 'a':
                 i2c_accel_read(&x, &y, &z);
                 printf("X %6d Y %6d Z %6d BAT %d uptime %d\n", x, y, z, io_adc_read(), uptime_ms);
@@ -122,7 +137,7 @@ int main(void)
                     printf("Aborted.\n");
                 io_set_red(0);
                 break;
-            case 'f':
+            case 'w':
                 printf("Write currently loaded image (%d bytes) to flash?\n", rom_bytes);
                 printf("<y> - Yes\n<any other key> - Abort.\n");
                 io_set_green(1);
@@ -157,7 +172,8 @@ int main(void)
                 printf("<a> - read accelerometer and battery ADC.\n");
                 printf("<r> - read one page of flash memory.\n");
                 printf("<e> - erase a sector of flash memory.\n");
-                printf("<f> - flash currently loaded image.\n");
+                printf("<w> - write currently loaded image to flash.\n");
+                printf("<f> - configure FPGA with USR button example.\n");
                 printf("<any other key> - print this message.\n\n");
                 break;
             }

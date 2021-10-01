@@ -48,7 +48,7 @@ typedef struct
     volatile uint32_t C01_CLK_GATE;           // 0x040
     volatile uint32_t C02_CLK_GATE;           // 0x044
     volatile uint32_t C08_X4_CLK_GATE;        // 0x048 C08X4(FFE) gate.
-    volatile uint32_t C08_X1_CLK_GATE;        // 0x04C C08X1(FFE) gate.
+    volatile uint32_t C08_X1_CLK_GATE;        // 0x04C C08X1(FFE) gate. [0] 1=FFE [2] 1=A0 [3] 1=AsyncFIFO0
     volatile uint32_t C10_FCLK_GATE;          // 0x050
     volatile uint32_t C11_CLK_GATE;           // 0x054 C11(UART/WDT/TIMER) gate. MISC->LOCK protected
     volatile uint32_t C12_CLK_GATE;           // 0x058
@@ -71,9 +71,9 @@ typedef struct
     volatile uint32_t CRU_DEBUG;              // 0x108
     volatile uint32_t reversed7[1];           //
     volatile uint32_t C01_CLK_DIV;            // 0x110 C01(SPImConfig/eFUSE/I2S/AHB2APB/CfgDMA/FFE/FIFO/SDMA/A0,10MHz) Source:C10 [4] 0=gated <1=running> [3:0]+1=divBy <1=divBy2>
-    volatile uint32_t C09_CLK_DIV;            // 0x114
+    volatile uint32_t C09_CLK_DIV;            // 0x114 C09((VoiceAPB/PIF/FB,10MHz) Source:C10 [4] 0=gated <1=running> [3:0]+1=divBy <1=divBy2>
     volatile uint32_t C31_CLK_DIV;            // 0x118
-    volatile uint32_t C09_CLK_GATE;           // 0x11C
+    volatile uint32_t C09_CLK_GATE;           // 0x11C C09 [0] <0=gated> 1=VoiceAPB [1] <0=gated> 1=PIF [2] <0=gated> 1=FB
     volatile uint32_t C30_31_CLK_GATE;        // 0x120
     volatile uint32_t CLK_DIVIDER_CLK_GATING; // 0x124
     volatile uint32_t reserved8[2];
