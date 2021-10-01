@@ -1,0 +1,3 @@
+set_io clk B3
+set_io reset A3
+set_io led E8
