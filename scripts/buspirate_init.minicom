@@ -1,0 +1,24 @@
+verbose on
+timeout 10
+send ""
+expect {
+            "HiZ>"
+                    timeout 2
+}
+send m
+expect "(1)>"
+send 3
+expect "(1)>"
+send 9
+expect "(1)>"
+send 1
+expect "(1)>"
+send 1
+expect "(1)>"
+send 1
+expect "(1)>"
+send 2
+expect "UART>"
+send (1)
+expect "Are you sure?"
+send y

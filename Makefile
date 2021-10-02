@@ -18,7 +18,7 @@ main.bin: main.elf
 	arm-none-eabi-objcopy -O binary main.elf main.bin
 
 
-.PHONY: all run clean
+.PHONY: all run clean bpinit
 all: main.bin
 
 run: main.bin
@@ -26,3 +26,6 @@ run: main.bin
 	
 clean:
 	-rm -f *.o main.elf
+
+bpinit:
+	minicom -S scripts/buspirate_init.minicom
