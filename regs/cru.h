@@ -37,12 +37,12 @@ typedef struct
     volatile uint32_t CLK_CTRL_D_0;           // 0x014 C11(UART/WDT/TIMER,10MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <14=divBy16>
     volatile uint32_t CLK_CTRL_E_0;           // 0x018 C12
     volatile uint32_t reserved1;              //
-    volatile uint32_t CLK_CTRL_F_0;           // 0x020 C16
+    volatile uint32_t CLK_CTRL_F_0;           // 0x020 C16(FB:Sys_Clk0,72MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <14=divBy16>
     volatile uint32_t CLK_CTRL_F_1;           // 0x024
     volatile uint32_t CLK_CTRL_G_0;           // 0x028 C18
     volatile uint32_t CLK_CTRL_H_0;           // 0x02C C19(ADC,typ1MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <14=divBy16>
     volatile uint32_t reserved2;              //
-    volatile uint32_t CLK_CTRL_I_0;           // 0x034 C21
+    volatile uint32_t CLK_CTRL_I_0;           // 0x034 C21(FB:Sys_Clk1,72MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <14=divBy16>
     volatile uint32_t CLK_CTRL_I_1;           // 0x038
     volatile uint32_t reverved3;              //
     volatile uint32_t C01_CLK_GATE;           // 0x040
@@ -50,18 +50,18 @@ typedef struct
     volatile uint32_t C08_X4_CLK_GATE;        // 0x048 C08X4(FFE) gate.
     volatile uint32_t C08_X1_CLK_GATE;        // 0x04C C08X1(FFE) gate. [0] 1=FFE [2] 1=A0 [3] 1=AsyncFIFO0
     volatile uint32_t C10_FCLK_GATE;          // 0x050
-    volatile uint32_t C11_CLK_GATE;           // 0x054 C11(UART/WDT/TIMER) gate. MISC->LOCK protected
+    volatile uint32_t C11_CLK_GATE;           // 0x054 C11(UART/WDT/TIMER) gate. [0] <0=gated> 1=running. MISC->LOCK protected
     volatile uint32_t C12_CLK_GATE;           // 0x058
     volatile uint32_t CS_CLK_GATE;            // 0x05C
     volatile uint32_t CU_CLK_GATE;            // 0x060
-    volatile uint32_t C16_CLK_GATE;           // 0x064
+    volatile uint32_t C16_CLK_GATE;           // 0x064 C16(FB:Sys_Clk0,72MHz) gate. [0] <0=gated> 1=running
     volatile uint32_t reversed4;              // 0x068
     volatile uint32_t C19_CLK_GATE;           // 0x06C
-    volatile uint32_t C21_CLK_GATE;           // 0x070
+    volatile uint32_t C21_CLK_GATE;           // 0x070 C21(FB:Sys_Clk1,72MHz) gate. [0] <0=gated> 1=running
     volatile uint32_t reversed5[3];           //
     volatile uint32_t PF_SW_RESET;            // 0x080
     volatile uint32_t FFE_SW_RESET;           // 0x084
-    volatile uint32_t FB_SW_RESET;            // 0x088
+    volatile uint32_t FB_SW_RESET;            // 0x088 <1=reset> [0] C02 [2] C09 [4] C16/Sys_Clk0_Rst [5] C21/Sys_Clk1_Rst
     volatile uint32_t A1_SW_RESET;            // 0x08C
     volatile uint32_t AUDIO_MISC_SW_RST;      // 0x090
     volatile uint32_t FB_MISC_SW_RST_CTL;     // 0x094
@@ -93,5 +93,11 @@ typedef struct
 #define CRU_C08_X4_CLK_GATE_PATH_0_Msk 0x01
 #define CRU_C08_X1_CLK_GATE_PATH_0_Msk 0x01
 #define CRU_C11_CLK_GATE_PATH_0_Msk 0x01
+
+#define CRU_FB_SW_RESET_C02 0x01
+#define CRU_FB_SW_RESET_C09 0x04
+#define CRU_FB_SW_RESET_C16 0x10
+#define CRU_FB_SW_RESET_C21 0x20
+#define CRU_FB_SW_RESET_ALL 0x35
 
 #endif

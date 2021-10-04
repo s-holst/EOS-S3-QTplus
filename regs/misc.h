@@ -38,7 +38,7 @@ typedef struct
     volatile uint32_t reserved214[63];    // 0x214
     volatile uint32_t LOCK_KEY_CTRL;      // 0x310
     volatile uint32_t reserved314[58];    // 0x314
-    volatile uint32_t FB_DEVICE_ID;       // 0x3FC
+    volatile uint32_t FB_DEVICE_ID;       // 0x3FC [15:0]R Fabric Device ID set by hw design (qlal4s3b_cell_macro.Device_ID)
 } MISC_typedef;
 
 #define MISC_LOCK_KEY_CTRL_UNLOCK 0x1ACCE551
