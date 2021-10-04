@@ -72,7 +72,7 @@ void Reset_Handler(void)
     CRU->CLK_CTRL_A_0 = 0; // C10=72MHz
 
     // Set up SysTick:
-    *((uint32_t *)0xE000E014) = 72000; // reload value
+    *((uint32_t *)0xE000E014) = 72055; // reload value. nominal 72000 + 55 as main clock is slightly >72MHz.
     *((uint32_t *)0xE000E018) = 0;
     *((uint32_t *)0xE000E010) = 7; // use processor clock, enable interrupt, enable timer.
 
