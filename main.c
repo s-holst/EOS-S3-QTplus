@@ -19,6 +19,8 @@
 #include "regs/aip.h"
 #include "regs/cru.h"
 #include "regs/iomux.h"
+#include "regs/misc.h"
+#include "regs/fpga.h"
 
 #include "uart.h"
 #include "i2c.h"
@@ -26,7 +28,7 @@
 #include "io.h"
 #include "fpga.h"
 
-#include "hw/toggle_led/build/top_bit.h"
+#include "hw/template/build/top_bit.h"
 
 extern uint32_t uptime_ms; // global from startup.c
 
@@ -41,8 +43,16 @@ typedef struct
     uint8_t id;         // id for EOS S3, must be 0x20.
 } tFlashBootHeader;
 
+typedef struct
+{
+    volatile uint32_t increments;
+    volatile uint32_t brightness;
+    volatile uint32_t lfsr;
+} tWBregs;
+
 int main(void)
 {
+    tWBregs *wb_regs = (tWBregs *)FPGA_WB_BASE;
     uint32_t rom_bytes = (uint32_t)&__etext + ((uint32_t)&__data_end__ - (uint32_t)&__data_start__);
     uint8_t btn_oldstate = 0;
     uint32_t read_addr = 0;
@@ -103,7 +113,8 @@ int main(void)
 
                 printf("Configuring FPGA...\n");
                 fpga_configure((uint32_t *)top_bit);
-                printf("Done. Toggle blue LED by pressing USR button.\n");
+                printf("Done. Fabric Device ID: %x\n", MISC->FB_DEVICE_ID);
+                printf("Influence blue LED by pressing USR button.\n");
                 break;
             case 'a':
                 i2c_accel_read(&x, &y, &z);
@@ -168,12 +179,41 @@ int main(void)
                     printf("Aborted.\n");
                 io_set_red(0);
                 break;
+            case 'R':
+                printf("Fabric Device ID: %x\n", MISC->FB_DEVICE_ID);
+                if (MISC->FB_DEVICE_ID == 0xf01d)
+                {
+                    printf("Increments: 0x%08x\n", wb_regs->increments);
+                    printf("Brightness: 0x%08x\n", wb_regs->brightness);
+                    printf("LFSR value: 0x%08x\n", wb_regs->lfsr);
+                }
+                break;
+            case 'U':
+                if (MISC->FB_DEVICE_ID == 0xf01d)
+                {
+                    wb_regs->increments += 0x200;
+                    printf("Increments: 0x%08x\n", wb_regs->increments);
+                }
+                break;
+            case 'D':
+                if (MISC->FB_DEVICE_ID == 0xf01d)
+                {
+                    wb_regs->increments -= 0x200;
+                    printf("Increments: 0x%08x\n", wb_regs->increments);
+                }
+                break;
             default:
                 printf("<a> - read accelerometer and battery ADC.\n");
                 printf("<r> - read one page of flash memory.\n");
                 printf("<e> - erase a sector of flash memory.\n");
                 printf("<w> - write currently loaded image to flash.\n");
-                printf("<f> - configure FPGA with USR button example.\n");
+                printf("<f> - configure FPGA with blink example.\n");
+                if (MISC->FB_DEVICE_ID == 0xf01d)
+                {
+                    printf("  <R> - read WB registers of blink example design.\n");
+                    printf("  <U> - Speed up LED blinking.\n");
+                    printf("  <D> - Slow down LED blinking.\n");
+                }
                 printf("<any other key> - print this message.\n\n");
                 break;
             }
