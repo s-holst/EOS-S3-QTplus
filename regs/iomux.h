@@ -318,4 +318,6 @@ typedef struct
 #define IOMUX_SPIm_MISO_SEL_PAD36 0
 #define IOMUX_SPIm_MISO_SEL_CONST0 1
 
+#define IOMUX_S_INTR_0_SEL_PAD3 1
+
 #endif

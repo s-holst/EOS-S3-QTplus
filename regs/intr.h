@@ -21,12 +21,12 @@
 
 typedef struct
 {
-    volatile uint32_t GPIO_INTR;             // 0x00
-    volatile uint32_t GPIO_INTR_RAW;         // 0x04
-    volatile uint32_t GPIO_INTR_TYPE;        // 0x08
-    volatile uint32_t GPIO_INTR_POL;         // 0x0C
+    volatile uint32_t GPIO_INTR;             // 0x00 [7:0]RW1C 1=GPIOx interrupt triggered
+    volatile uint32_t GPIO_INTR_RAW;         // 0x04 [7:0]R raw logic value of GPIOx
+    volatile uint32_t GPIO_INTR_TYPE;        // 0x08 [7:0] trigger type <0=level> 1=edge
+    volatile uint32_t GPIO_INTR_POL;         // 0x0C [7:0] trigger polarity <0=low/fall> 1=high/rise
     volatile uint32_t GPIO_INTR_EN_AP;       // 0x10
-    volatile uint32_t GPIO_INTR_EN_M4;       // 0x14
+    volatile uint32_t GPIO_INTR_EN_M4;       // 0x14 [7:0] enable for M4 <0=disable> 1=enable
     volatile uint32_t GPIO_INTR_EN_FFE0;     // 0x18
     volatile uint32_t GPIO_INTR_EN_FFE1;     // 0x1C
     volatile uint32_t reserved1[4];          //
@@ -62,5 +62,26 @@ typedef struct
 } INTR_typedef;
 
 #define INTR_OTHER_INTR_EN_M4_UART 0x00000002
+
+// TODO: use CMSIS?
+
+#define NVIC ((NVIC_typedef *)0xE000E100)
+
+typedef struct
+{
+    volatile uint32_t ISER[8];        // 0x000 (R/W)  Interrupt Set Enable Register
+    volatile uint32_t RESERVED0[24];  //
+    volatile uint32_t ICER[8];        // 0x080 (R/W)  Interrupt Clear Enable Register
+    volatile uint32_t RSERVED1[24];   //
+    volatile uint32_t ISPR[8];        // 0x100 (R/W)  Interrupt Set Pending Register
+    volatile uint32_t RESERVED2[24];  //
+    volatile uint32_t ICPR[8];        // 0x180 (R/W)  Interrupt Clear Pending Register
+    volatile uint32_t RESERVED3[24];  //
+    volatile uint32_t IABR[8];        // 0x200 (R/W)  Interrupt Active bit Register
+    volatile uint32_t RESERVED4[56];  //
+    volatile uint8_t IP[240];         // 0x300 (R/W)  Interrupt Priority Register (8Bit wide)
+    volatile uint32_t RESERVED5[644]; //
+    volatile uint32_t STIR;           // 0xE00 ( /W)  Software Trigger Interrupt Register
+} NVIC_typedef;
 
 #endif
