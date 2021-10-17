@@ -47,7 +47,7 @@ void spi_wait_idle()
     SPI->SER = 0;
 }
 
-int spi_tx(const uint8_t ucChipMsk, const uint8_t *pucTxData, const uint32_t uiTxLen)
+int spi_tx_with_idle_cb(const uint8_t ucChipMsk, const uint8_t *pucTxData, const uint32_t uiTxLen, void cb(void))
 {
     spi_wait_idle();
 
@@ -59,13 +59,22 @@ int spi_tx(const uint8_t ucChipMsk, const uint8_t *pucTxData, const uint32_t uiT
     for (int i = 0; i < uiTxLen; i++)
     {
         while (!(SPI->SR & SPI_SR_TFNF))
+        {
             SPI->SER = ucChipMsk; // TX FIFO is full: Start transmitting.
+            if (cb)
+                cb();
+        }
         SPI->DR0 = pucTxData[i];
     }
 
     SPI->SER = ucChipMsk; // Ensure transmission has started.
 
     return 0;
+}
+
+int spi_tx(const uint8_t ucChipMsk, const uint8_t *pucTxData, const uint32_t uiTxLen)
+{
+    return spi_tx_with_idle_cb(ucChipMsk, pucTxData, uiTxLen, NULL);
 }
 
 int spi_rx(const uint8_t ucChipMsk, uint8_t *pucRxData, const uint32_t uiRxLen)

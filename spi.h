@@ -19,6 +19,8 @@
 
 int spi_init();
 int spi_tx(const uint8_t ucChipMsk, const uint8_t *pucTxData, const uint32_t uiTxLen);
+int spi_tx_with_idle_cb(const uint8_t ucChipMsk, const uint8_t *pucTxData, const uint32_t uiTxLen, void cb(void));
+
 int spi_rx(const uint8_t ucChipMsk, uint8_t *pucRxData, const uint32_t uiRxLen);
 int spi_cmd(const uint8_t ucChipMsk, const uint8_t *pucTxData, const uint32_t uiTxLen, uint8_t *pucRxData, const uint32_t uiRxLen);
 int spi_txrx(const uint8_t ucChipMsk, const uint8_t *pucTxData, uint8_t *pucRxData, const uint32_t uiLen);
