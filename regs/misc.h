@@ -12,8 +12,8 @@
    See the License for the specific language governing permissions and
    limitations under the License. */
 
-#ifndef __MISC_H
-#define __MISC_H
+#ifndef __REGS_MISC_H
+#define __REGS_MISC_H
 
 #include <stdint.h>
 
