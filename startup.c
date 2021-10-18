@@ -43,8 +43,13 @@
 
 #include <stdint.h>
 
+#include "regs/misc.h"
 #include "regs/aip.h"
 #include "regs/cru.h"
+#include "regs/timer.h"
+
+// CPU cycles per millisecond.
+#define CYCLES_PER_MS (72055)
 
 uint32_t uptime_ms = 0; // global: uptime in milliseconds, always counting up, wraps in about 49 days.
 
@@ -53,9 +58,17 @@ extern uint32_t __data_start__;
 extern uint32_t __data_end__;
 extern void _start(void) __attribute__((noreturn)); // C library entry point
 
+uint32_t last_systick_tvalue;
 void SysTick_Handler()
 {
-    uptime_ms++;
+    // When system is busy, this handler may not be called always every 1 ms.
+    // Use Timer1 value to determine how many ms elapsed since last call.
+    uint32_t current_tvalue = TIMER->VALUE; // 2 MHz down-counter
+    uint32_t elapsed = last_systick_tvalue - current_tvalue;
+    if (elapsed & 0x80000000) // wrapped?
+        elapsed = last_systick_tvalue + ~current_tvalue;
+    last_systick_tvalue = current_tvalue;
+    uptime_ms += (elapsed + 1000) / 2000;
 }
 
 void Reset_Handler(void)
@@ -67,14 +80,25 @@ void Reset_Handler(void)
     while (pDest < &__data_end__)
         *pDest++ = *pSrc++;
 
-    // Set main clock to 72 MHz:
+    // Setup main clock (C10) to 72 MHz:
     AIP->OSC_CTRL_1 = 2194;
     CRU->CLK_CTRL_A_0 = 0; // C10=72MHz
 
+    // Setup APB clock for UART/WDT/TIMER (C11) to 2 MHz:
+    MISC->LOCK_KEY_CTRL = MISC_LOCK_KEY_CTRL_UNLOCK;
+    CRU->C11_CLK_GATE |= CRU_C11_CLK_GATE_PATH_0_Msk;
+    MISC->LOCK_KEY_CTRL = 0;
+    CRU->CLK_CTRL_D_0 = CRU_CLK_CTRL_x_0_DIV_BY(36);
+
+    // Set up a free-running timer for missed SysTick interrupts compensation.
+    TIMER->RELOAD = 0xffffffff;
+    TIMER->CTRL = 1; // enable, no external control, no interrupts
+    last_systick_tvalue = TIMER->VALUE;
+
     // Set up SysTick:
-    *((uint32_t *)0xE000E014) = 72055; // reload value. nominal 72000 + 55 as main clock is slightly >72MHz.
+    *((uint32_t *)0xE000E014) = CYCLES_PER_MS; // Reload value.
     *((uint32_t *)0xE000E018) = 0;
-    *((uint32_t *)0xE000E010) = 7; // use processor clock, enable interrupt, enable timer.
+    *((uint32_t *)0xE000E010) = 7; // Use processor clock, enable interrupt, enable timer.
 
     _start();
 }
