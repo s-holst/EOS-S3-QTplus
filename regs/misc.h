@@ -22,8 +22,8 @@
 typedef struct
 {
     volatile uint32_t DBG_MON;            // 0x000
-    volatile uint32_t SUBSYS_DBG_MON_SEL; // 0x004
-    volatile uint32_t A0_DBG_MON_SEL;     // 0x008
+    volatile uint32_t SUBSYS_DBG_MON_SEL; // 0x004 [2:0] <0=A0> 1=CPU 2=Reserved 3=FFE 4=AUDIO
+    volatile uint32_t A0_DBG_MON_SEL;     // 0x008 [0] <0=PMU> 1=CRU
     volatile uint32_t A0_PMU_DBG_MON_SEL; // 0x00C
     volatile uint32_t reserved010[60];    // 0x010
     volatile uint32_t IO_INPUT;           // 0x100 [7:0]R input of GPIO7..GPIO0

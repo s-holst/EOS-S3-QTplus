@@ -68,7 +68,7 @@ typedef struct
     volatile uint32_t reversed6[26];          //
     volatile uint32_t CLK_CTRL_PMU;           // 0x100
     volatile uint32_t CRU_GENERAL;            // 0x104
-    volatile uint32_t CRU_DEBUG;              // 0x108
+    volatile uint32_t CRU_DEBUG;              // 0x108 [3:0] debug_mon[7/6] selection <0=none> 1=C00 2=C01 3=C02 4=C08X4 5=C08X1 6=C09 7=C10 8=C11 9=CS 10=C16 11=C19 12=C20/C32 13=C21 14=C23 15=C30/C31
     volatile uint32_t reversed7[1];           //
     volatile uint32_t C01_CLK_DIV;            // 0x110 C01(SPImConfig/eFUSE/I2S/AHB2APB/CfgDMA/FFE/FIFO/SDMA/A0,10MHz) Source:C10 [4] 0=gated <1=running> [3:0]+1=divBy <1=divBy2>
     volatile uint32_t C09_CLK_DIV;            // 0x114 C09((VoiceAPB/PIF/FB,10MHz) Source:C10 [4] 0=gated <1=running> [3:0]+1=divBy <1=divBy2>
