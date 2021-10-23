@@ -51,7 +51,7 @@ int i2c_init()
     // Start clock C08X4 = 36 MHz and C08X1 = 9 MHz
     // Assuming main clock is 72MHz
     CRU->CLK_CTRL_C_0 = CRU_CLK_CTRL_x_0_DIV_BY(2);
-    CRU->C01_CLK_GATE |= CRU_C01_CLK_GATE_PATH_3_Msk;
+    CRU->C01_CLK_GATE |= CRU_C01_CLK_GATE_PATH_3_FFE;
     CRU->C08_X1_CLK_GATE |= CRU_C08_X1_CLK_GATE_PATH_0_Msk;
     CRU->C08_X4_CLK_GATE |= CRU_C08_X4_CLK_GATE_PATH_0_Msk;
 

@@ -45,7 +45,7 @@ typedef struct
     volatile uint32_t CLK_CTRL_I_0;           // 0x034 C21(FB:Sys_Clk1,72MHz) [9] <1=divide> 0=passthrough [8:0]+2=divBy <14=divBy16>
     volatile uint32_t CLK_CTRL_I_1;           // 0x038
     volatile uint32_t reverved3;              //
-    volatile uint32_t C01_CLK_GATE;           // 0x040
+    volatile uint32_t C01_CLK_GATE;           // 0x040 C01(SPImConfig/eFUSE/I2S/AHB2APB/CfgDMA/FFE/FIFO/SDMA/A0,10MHz) Source:C10 [1] 1=SDMA SRAM [2] 1=PacketFIFO [3] 1=FFE [4] <1=AHB2APBbridge> [5] 1=I2S [6] 1=SDMA [7] <1=running> [9] <1=SPT>
     volatile uint32_t C02_CLK_GATE;           // 0x044
     volatile uint32_t C08_X4_CLK_GATE;        // 0x048 C08X4(FFE) gate.
     volatile uint32_t C08_X1_CLK_GATE;        // 0x04C C08X1(FFE) gate. [0] 1=FFE [2] 1=A0 [3] 1=AsyncFIFO0
@@ -88,7 +88,14 @@ typedef struct
 // a divisor >= 2 enables the divider and sets its parameter to divisor-2.
 #define CRU_CLK_CTRL_x_0_DIV_BY(x) ((x) < 2 ? 0x000 : (0x200 | ((x)-2)))
 
-#define CRU_C01_CLK_GATE_PATH_3_Msk 0x08
+#define CRU_C01_CLK_GATE_PATH_1_SDMA_SRAM 0x02
+#define CRU_C01_CLK_GATE_PATH_2_PF 0x04
+#define CRU_C01_CLK_GATE_PATH_3_FFE 0x08
+#define CRU_C01_CLK_GATE_PATH_4_AHB2APB 0x10
+#define CRU_C01_CLK_GATE_PATH_5_I2S 0x20
+#define CRU_C01_CLK_GATE_PATH_6_SDMA 0x40
+#define CRU_C01_CLK_GATE_PATH_7 0x80
+#define CRU_C01_CLK_GATE_PATH_9_SPT 0x200
 
 #define CRU_C08_X4_CLK_GATE_PATH_0_Msk 0x01
 #define CRU_C08_X1_CLK_GATE_PATH_0_Msk 0x01
