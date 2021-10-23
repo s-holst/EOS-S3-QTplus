@@ -49,11 +49,11 @@ typedef struct
     volatile uint32_t FFE_PWR_MODE_CFG;       // 0x094
     volatile uint32_t FFE_PD_SRC_MASK_N;      // 0x098
     volatile uint32_t FFE_WU_SRC_MASK_N;      // 0x09C
-    volatile uint32_t FB_STATUS;              // 0x0A0 RHW [0] active, [1] deep sleep, [2] shutdown
+    volatile uint32_t FB_STATUS;              // 0x0A0 [0]RHW 1=active, [1]RHW 1=deep sleep, [2]RHW <1=shutdown>
     volatile uint32_t FB_PWR_MODE_CFG;        // 0x0A4
     volatile uint32_t FB_PD_SRC_MASK_N;       // 0x0A8
     volatile uint32_t FB_WU_SRC_MASK_N;       // 0x0AC
-    volatile uint32_t PF_STATUS;              // 0x0B0
+    volatile uint32_t PF_STATUS;              // 0x0B0 [0]RHW 1=active, [1]RHW 1=deep sleep, [2]RHW <1=shutdown>
     volatile uint32_t PF_PWR_MODE_CFG;        // 0x0B4
     volatile uint32_t PF_PD_SRC_MASK_N;       // 0x0B8
     volatile uint32_t PF_WU_SRC_MASK_N;       // 0x0BC
@@ -65,7 +65,7 @@ typedef struct
     volatile uint32_t A1_PWR_MODE_CFG;        // 0x0D4 [1:0] 1=retention 2=shutdown
     volatile uint32_t A1_PD_SRC_MASK_N;       // 0x0D8
     volatile uint32_t A1_WU_SRC_MASK_N;       // 0x0DC
-    volatile uint32_t MISC_STATUS;            // 0x0E0 RHW [4] 1=I2S_power_on
+    volatile uint32_t MISC_STATUS;            // 0x0E0 [4]RHW 1=I2S_power_on
     volatile uint32_t AUDIO_STATUS;           // 0x0E4
     volatile uint32_t M4_SRAM_STATUS;         // 0x0E8
     volatile uint32_t AUDIO_WU_SRC_MASK_N;    // 0x0EC
