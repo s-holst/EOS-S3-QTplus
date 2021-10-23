@@ -19,10 +19,11 @@
 
 void io_init()
 {
-    IOMUX->PAD[6] = IOMUX_PAD_6_FSEL_GPIO0 | IOMUX_PAD_OEN_DISABLE | IOMUX_PAD_REN_ENABLE; // USR button
-    IOMUX->PAD[18] = IOMUX_PAD_18_FSEL_GPIO4 | IOMUX_PAD_E_4MA;                            // Route GPIO4 -> Blue LED on Pad 18
-    IOMUX->PAD[21] = IOMUX_PAD_21_FSEL_GPIO5 | IOMUX_PAD_E_4MA;                            // Route GPIO5 -> Green LED on Pad 21
-    IOMUX->PAD[22] = IOMUX_PAD_22_FSEL_GPIO6 | IOMUX_PAD_E_4MA;                            // Route GPIO6 -> Red LED on Pad 22
+    IOMUX->PAD[6] = IOMUX_PAD_6_FSEL_GPIO0 | IOMUX_PAD_OEN_DISABLE |
+                    IOMUX_PAD_REN_ENABLE | IOMUX_PAD_SMT_ENABLE; // USR button
+    IOMUX->PAD[18] = IOMUX_PAD_18_FSEL_GPIO4 | IOMUX_PAD_E_4MA;  // Route GPIO4 -> Blue LED on Pad 18
+    IOMUX->PAD[21] = IOMUX_PAD_21_FSEL_GPIO5 | IOMUX_PAD_E_4MA;  // Route GPIO5 -> Green LED on Pad 21
+    IOMUX->PAD[22] = IOMUX_PAD_22_FSEL_GPIO6 | IOMUX_PAD_E_4MA;  // Route GPIO6 -> Red LED on Pad 22
 
     // Output high on Pad 26 for battery voltage monitoring
     IOMUX->PAD[26] = IOMUX_PAD_26_FSEL_GPIO1 | IOMUX_PAD_E_4MA;
