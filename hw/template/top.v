@@ -11,6 +11,7 @@ module top ( // IO connections to pads. Uncomment matching lines in io.pcf and c
     wire [16:0] i_wb_adr;
     wire [31:0] i_wb_dat;
     wire i_wb_rst, i_wb_cyc, i_wb_stb, i_wb_wen;
+    wire pkfb0_push;
 
     reg o_wb_ack;
     reg [31:0] o_wb_dat;
@@ -46,10 +47,10 @@ module top ( // IO connections to pads. Uncomment matching lines in io.pcf and c
         .FB_Start   (   ), // output
         .FB_Busy    ( 0 ), // input
         
-        .Sys_PKfb_Clk    ( 0 ), // input       | C41 driven by FPGA, 20MHz max. (or 10MHz? [TRM page 341])
+        .Sys_PKfb_Clk    ( clk0 ), // input    | C41 driven by FPGA, 20MHz max. (or 10MHz? [TRM page 341])
         .Sys_PKfb_Rst    (   ), // output      | Reset driven by CRU->FB_MISC_SW_RST_CTL[1]
-        .FB_PKfbData     ( 0 ), // input[31:0]
-        .FB_PKfbPush     ( 0 ), // input[3:0]
+        .FB_PKfbData     ( counter ), // input[31:0]
+        .FB_PKfbPush     ( { 3'b0, pkfb0_push } ), // input[3:0]  | always @(negedge Sys_PKfb_Clk) if 1, then push FB_PKfbData to FIFO x.
         .FB_PKfbSOF      ( 0 ), // input
         .FB_PKfbEOF      ( 0 ), // input
         .FB_PKfbOverflow (   ), // output
@@ -137,5 +138,23 @@ module top ( // IO connections to pads. Uncomment matching lines in io.pcf and c
 
     // Sets LED to a certain brightness; USR button inverts.
     assign pad18 = (lfsr_state < brightness) ^ ~pad6;
+
+    // A 12 MHz 32-bit up-counter whose value gets pushed to FIFO 0 on usr button state change.
+    reg [31:0] counter;
+    reg pad6_buffered, pad6_previous;
+
+    always @(posedge clk0) begin
+        if (rst0) begin
+            counter <= 0;
+            pad6_buffered <= 1;
+            pad6_previous <= 1;
+        end else begin
+            counter <= counter + 1;
+            pad6_buffered <= pad6;
+            pad6_previous <= pad6_buffered;
+        end
+    end
+
+    assign pkfb0_push = pad6_buffered ^ pad6_previous;
 
 endmodule

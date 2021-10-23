@@ -21,6 +21,8 @@
 #include "regs/iomux.h"
 #include "regs/misc.h"
 #include "regs/fpga.h"
+#include "regs/pmu.h"
+#include "regs/pkfb.h"
 
 #include "uart.h"
 #include "i2c.h"
@@ -81,6 +83,14 @@ int main(void)
     i2c_accel_init();
     io_init();
 
+    // ensure Packet FIFO power up
+    PMU->FFE_FB_PF_SW_WU |= PMU_FFE_FB_PF_SW_WU_PF_WU_Msk;
+    while (!(PMU->PF_STATUS & 1))
+        ;
+    // C01=9MHz already configured by spi_init()
+    CRU->C01_CLK_GATE |= CRU_C01_CLK_GATE_PATH_2_PF;
+    PKFB->CTRL |= PKFB_CTRL_PF0_ENABLE | PKFB_CTRL_PF0_PUSH_MUX_FFE; // Enable push from fabric.
+
     printf("\nPress <space> for help.\n");
 
     while (1)
@@ -93,9 +103,19 @@ int main(void)
         if (btn_state != btn_oldstate)
         {
             if (btn_state)
+            {
                 printf("USR button pressed\n");
+                printf("PKFB 0 cnt %x\n", PKFB->PF0_CNT);
+                while (!(PKFB->PF0_CNT & PKFB_PFx_CNT_EMPTY))
+                    printf("  %08x\n", PKFB->PF0_DATA);
+            }
             else
+            {
                 printf("USR button released\n");
+                printf("PKFB 0 cnt %x\n", PKFB->PF0_CNT);
+                while (!(PKFB->PF0_CNT & PKFB_PFx_CNT_EMPTY))
+                    printf("  %08x\n", PKFB->PF0_DATA);
+            }
             btn_oldstate = btn_state;
         }
 
